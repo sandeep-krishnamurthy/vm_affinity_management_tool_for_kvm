@@ -49,6 +49,7 @@ from virtManager.systray import vmmSystray
 
 #sandeep
 from virtManager.vmaffinityabout import vmaffinityAbout
+from virtManager.vmaffinitycreatenewrule import vmaffinityCreateNewRule
 #Stop Sandeep
 
 # Enable this to get a report of leaked objects on app shutdown
@@ -90,6 +91,7 @@ class vmmEngine(vmmGObject):
 
         #Start Sandeep
         self.windowVMAffinityAbout = None
+        self.windowVMAffinityCreateNewAffinityRule = None
         #Stop Sandeep
 
         self.conns = {}
@@ -386,6 +388,10 @@ class vmmEngine(vmmGObject):
         if self.windowVMAffinityAbout:
             self.windowVMAffinityAbout.cleanup()
             self.windowVMAffinityAbout = None
+        
+        if self.windowVMAffinityCreateNewAffinityRule:
+            self.windowVMAffinityCreateNewAffinityRule.cleanup()
+            self.windowVMAffinityCreateNewAffinityRule = None
 
         #Stop Sandeep
 
@@ -396,6 +402,7 @@ class vmmEngine(vmmGObject):
         self.conns = {}
 
     def exit_app(self, src):
+        
         if self.err is None:
             # Already in cleanup
             return
@@ -511,7 +518,13 @@ class vmmEngine(vmmGObject):
             self.windowVMAffinityAbout.show()
         except Exception, e:
             src.err.show_err(_("Error launching 'VM Affinity About' dialog: %s") % str(e))
-
+    
+    def _do_show_create_new_affinity_rule(self, src):
+        try:
+            self._get_createnewaffinityrule_dialog(src).show(src.topwin)           
+        except Exception, e:
+            src.err.show_err(_("Error launching 'VM Affinity Create New Affinity Rule' dialog: %s") % str(e))
+            
     #Stop Sandeep
 
     def _do_show_about(self, src):
@@ -584,6 +597,17 @@ class vmmEngine(vmmGObject):
         obj.connect("cancelled", self._connect_cancelled)
         self.windowConnect = obj
         return self.windowConnect
+    
+    #start sandeep
+    
+    def _get_createnewaffinityrule_dialog(self, src):
+
+        if self.windowVMAffinityCreateNewAffinityRule:
+            return self.windowVMAffinityCreateNewAffinityRule
+
+        self.windowVMAffinityCreateNewAffinityRule = vmaffinityCreateNewRule()
+        return self.windowVMAffinityCreateNewAffinityRule
+    #stop sandeep
 
     def _do_show_connect(self, src):
         try:
@@ -668,6 +692,7 @@ class vmmEngine(vmmGObject):
 
         #start sandeep
         obj.connect("action-show-afinnity-about", self._do_show_affinity_about)
+        obj.connect("action-show-create-new-affinity-rule", self._do_show_create_new_affinity_rule)
 
         #stop sandeep
 
@@ -766,7 +791,14 @@ class vmmEngine(vmmGObject):
     def show_domain_performance(self, uri, uuid):
         self._show_vm_helper(self.get_manager(), uri, uuid,
                              page=DETAILS_PERF, forcepage=True)
-
+    
+    #start sandeep
+    
+    def show_createnewaffinityrule(self):
+        self._do_show_create_new_affinity_rule(self.get_manager())
+    
+    #stop sandeep
+    
     #######################################
     # Domain actions run/destroy/save ... #
     #######################################
