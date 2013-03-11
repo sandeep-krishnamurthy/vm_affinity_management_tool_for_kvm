@@ -50,6 +50,7 @@ from virtManager.systray import vmmSystray
 #sandeep
 from virtManager.vmaffinityabout import vmaffinityAbout
 from virtManager.vmaffinitycreatenewrule import vmaffinityCreateNewRule
+from virtManager.vmaffinitydeleterule import vmaffinityDeleteRule
 #Stop Sandeep
 
 # Enable this to get a report of leaked objects on app shutdown
@@ -92,6 +93,7 @@ class vmmEngine(vmmGObject):
         #Start Sandeep
         self.windowVMAffinityAbout = None
         self.windowVMAffinityCreateNewAffinityRule = None
+        self.windowVMAffinityDeleteAffinityRule = None
         #Stop Sandeep
 
         self.conns = {}
@@ -392,6 +394,10 @@ class vmmEngine(vmmGObject):
         if self.windowVMAffinityCreateNewAffinityRule:
             self.windowVMAffinityCreateNewAffinityRule.cleanup()
             self.windowVMAffinityCreateNewAffinityRule = None
+        
+        if self.windowVMAffinityDeleteAffinityRule:
+            self.windowVMAffinityDeleteAffinityRule.cleanup()
+            self.windowVMAffinityDeleteAffinityRule = None
 
         #Stop Sandeep
 
@@ -524,7 +530,13 @@ class vmmEngine(vmmGObject):
             self._get_createnewaffinityrule_dialog(src).show(src.topwin)           
         except Exception, e:
             src.err.show_err(_("Error launching 'VM Affinity Create New Affinity Rule' dialog: %s") % str(e))
-            
+     
+    def _do_show_delete_affinity_rule(self, src):
+        try:
+            self._get_deleteaffinityrule_dialog().show(src.topwin)
+        except Exception, e:
+            src.err.show_err(_("Error launching 'VM Affinity Delete Affinity Rule' dialog: %s") % str(e))
+    
     #Stop Sandeep
 
     def _do_show_about(self, src):
@@ -607,6 +619,14 @@ class vmmEngine(vmmGObject):
 
         self.windowVMAffinityCreateNewAffinityRule = vmaffinityCreateNewRule()
         return self.windowVMAffinityCreateNewAffinityRule
+    
+    def _get_deleteaffinityrule_dialog(self):
+        if self.windowVMAffinityDeleteAffinityRule:
+            return self.windowVMAffinityDeleteAffinityRule
+        
+        self.windowVMAffinityDeleteAffinityRule = vmaffinityDeleteRule()
+        return self.windowVMAffinityDeleteAffinityRule
+        
     #stop sandeep
 
     def _do_show_connect(self, src):
@@ -693,6 +713,7 @@ class vmmEngine(vmmGObject):
         #start sandeep
         obj.connect("action-show-afinnity-about", self._do_show_affinity_about)
         obj.connect("action-show-create-new-affinity-rule", self._do_show_create_new_affinity_rule)
+        obj.connect("action-show-delete-affinity-rule", self._do_show_delete_affinity_rule)
 
         #stop sandeep
 
@@ -797,6 +818,9 @@ class vmmEngine(vmmGObject):
     def show_createnewaffinityrule(self):
         self._do_show_create_new_affinity_rule(self.get_manager())
     
+    def show_deleteaffinityrule(self):
+        self._do_show_delete_affinity_rule(self.get_manager())
+        
     #stop sandeep
     
     #######################################
