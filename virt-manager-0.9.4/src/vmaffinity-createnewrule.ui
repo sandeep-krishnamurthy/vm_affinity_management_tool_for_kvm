@@ -180,20 +180,13 @@
                     <property name="left_padding">5</property>
                     <property name="right_padding">5</property>
                     <child>
-                      <object class="GtkScrolledWindow" id="scrolledwindow2">
+                      <object class="GtkScrolledWindow" id="availableVirtualMachineScrolledwindow">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="hscrollbar_policy">automatic</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <child>
-                          <object class="GtkTreeView" id="allVMListTreeView">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="border_width">2</property>
-                            <property name="model">allVMListStore</property>
-                            <property name="headers_visible">False</property>
-                            <property name="headers_clickable">False</property>
-                          </object>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>
@@ -301,20 +294,13 @@
                     <property name="left_padding">5</property>
                     <property name="right_padding">5</property>
                     <child>
-                      <object class="GtkScrolledWindow" id="scrolledwindow3">
+                      <object class="GtkScrolledWindow" id="groupVirtualMachineScrolledwindow">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="hscrollbar_policy">automatic</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <child>
-                          <object class="GtkTreeView" id="AffinityGroupVMListtreeview">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="border_width">2</property>
-                            <property name="model">AffinityGroupVMListStore</property>
-                            <property name="headers_visible">False</property>
-                            <property name="headers_clickable">False</property>
-                          </object>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>
@@ -388,7 +374,7 @@
                         <property name="receives_default">True</property>
                         <property name="use_action_appearance">False</property>
                         <signal name="activate" handler="on_CreateNewRuleButton_activate" swapped="no"/>
-                        <signal name="clicked" handler="CreateNewRuleButton_clicked_cb" swapped="no"/>
+                        <signal name="clicked" handler="on_CreateNewRuleButton_clicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -420,6 +406,24 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="spacing">2</property>
+            <child>
+              <object class="GtkLabel" id="warningLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Warning</property>
+                <property name="ellipsize">start</property>
+                <attributes>
+                  <attribute name="weight" value="heavy"/>
+                  <attribute name="foreground" value="#fa08167b167b"/>
+                  <attribute name="background" value="#ffffffffffff"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
