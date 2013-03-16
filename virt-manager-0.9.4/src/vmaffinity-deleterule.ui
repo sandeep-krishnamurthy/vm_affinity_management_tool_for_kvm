@@ -31,7 +31,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkImage" id="vma-deleterule-banner">
+          <object class="GtkImage" id="vmaDeleteruleBanner">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="stock">gtk-missing-image</property>
@@ -58,20 +58,13 @@
                 <property name="left_padding">5</property>
                 <property name="right_padding">5</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow1">
+                  <object class="GtkScrolledWindow" id="configuredAffinityRulesScrolledwindow">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="hscrollbar_policy">automatic</property>
                     <property name="vscrollbar_policy">automatic</property>
                     <child>
-                      <object class="GtkTreeView" id="configuredAffinityRulesTreeview">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="border_width">2</property>
-                        <property name="model">configuredAffinityRulesListstore</property>
-                        <property name="headers_visible">False</property>
-                        <property name="headers_clickable">False</property>
-                      </object>
+                      <placeholder/>
                     </child>
                   </object>
                 </child>
@@ -128,7 +121,7 @@
                                 <property name="hscrollbar_policy">automatic</property>
                                 <property name="vscrollbar_policy">automatic</property>
                                 <child>
-                                  <object class="GtkTextView" id="selectedRuleTextview">
+                                  <object class="GtkTextView" id="selectedRuleDesTextview">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="wrap_mode">word-char</property>
@@ -166,20 +159,13 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkScrolledWindow" id="scrolledwindow3">
+                              <object class="GtkScrolledWindow" id="selectedAffinityRuleVMsScrolledwindow">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="hscrollbar_policy">automatic</property>
                                 <property name="vscrollbar_policy">automatic</property>
                                 <child>
-                                  <object class="GtkTreeView" id="selectedAffinityRuleVMsTreeview">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="border_width">2</property>
-                                    <property name="model">selectedAffinityRuleVMsListstore</property>
-                                    <property name="headers_visible">False</property>
-                                    <property name="headers_clickable">False</property>
-                                  </object>
+                                  <placeholder/>
                                 </child>
                               </object>
                             </child>
@@ -243,7 +229,7 @@
                     <property name="spacing">50</property>
                     <property name="layout_style">end</property>
                     <child>
-                      <object class="GtkButton" id="cancelNewRuleDeletionButton">
+                      <object class="GtkButton" id="cancelRuleDeletionButton">
                         <property name="label" translatable="yes">Cancel</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -300,6 +286,21 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="spacing">2</property>
+            <child>
+              <object class="GtkLabel" id="errorLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <attributes>
+                  <attribute name="weight" value="heavy"/>
+                  <attribute name="foreground" value="#bf1c0210064f"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
