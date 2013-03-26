@@ -14,10 +14,12 @@
 #
 
 import logging
-
+import libvirt
 import gtk
 
 from virtManager.baseclass import vmmGObjectUI
+from virtManager import vmaffinityxmlutil
+from virtManager.error import vmmErrorDialog
 
 class vmaffinityCreateNewRule(vmmGObjectUI):
     
@@ -43,6 +45,11 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         self.selectedAllVMColumn = None
         self.selectedGroupVMRow = None
         self.selectedGroupVMColumn = None
+        self.allVMList = None
+        self.totalVMsInGroup = 0
+        
+        #Helper Variables
+        self.sortedAllGroupsList = None
         
         vmmGObjectUI.__init__(self, "vmaffinity-createnewrule.ui", "vmaffinity-createnewrule")
 
@@ -52,11 +59,15 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
             "on_removeVMFromAffinityGroup_clicked": self.removeVMFromGroupClicked,
             "on_cancelNewRuleCreationButton_clicked":self.cancelClicked,
             "on_CreateNewRuleButton_clicked":self.createNewAffinityGroupClicked,
+            "on_newAffinityGroupNameTextEntry_focus_out_event":self.groupNameTextEntryFocusOut,
             "on_vmaffinitycreaterulewindow_delete_event": self.close,
             })
         
         #Initialize UI components
         self.initUIComponents()
+        
+        #Initialize helper variables
+        self.sortedAllGroupsList = vmaffinityxmlutil.loadGroupsToList()
         
     def initUIComponents(self):
     
@@ -91,6 +102,7 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         self.groupVMClist.show()
         self.newGroupVMScrolledWindow.add(self.groupVMClist)
         
+        self.err = vmmErrorDialog()
         #initialize all the UI Components.
         self.init_banner()
         self.init_allVMList()
@@ -101,23 +113,40 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         self.createNewRuleBanner.set_from_file("/usr/local/share/virt-manager/icons/hicolor/16x16/actions/vmaffinitycreaterule.png")
     
     def init_allVMList(self):
-    
+
+        #### Temp starts
     	# TODO SANDEEP : Here write code to form list by fetching from libvirt instead of hardcoding.
-        vms = [ [ "vmaffinity1"],
-                  [ "vmaffinity2"],
-                  [ "vmaffinity3"],
-                  [ "vmaffinity4"],
-				  [	"vmaffinity5"],
-				  [	"vmaffinity6"],
-				  [	"vmaffinity7"]]
+        #vms = [ [ "vmaffinity1"],
+             #     [ "vmaffinity2"],
+              #    [ "vmaffinity3"],
+              #    [ "vmaffinity4"],
+				#  [	"vmaffinity5"],
+				#  [	"vmaffinity6"],
+				#  [	"vmaffinity7"]]
 	    
 	    # Here we do the actual adding of the text. It's done once for
         # each row.
-        for indx in range(7):
-            self.allVMClist.append(vms[indx])
+        #for indx in range(7):
+            #self.allVMClist.append(vms[indx])
+        
+        #default selection
+        #self.allVMClist.select_row(0,0)
+        #### Temp ends
+        
+        self.allVMClist.clear()
+        
+        connection = libvirt.open('qemu:///system')
+        self.allVMList = connection.listDefinedDomains()
+        for name in self.allVMList:
+            self.allVMClist.append([name])
+        
+        # just for testing
+        self.allVMClist.append(["vmaffinity1"])
+
         
         #default selection
         self.allVMClist.select_row(0,0)
+        
         return
         
     def init_groupVMList(self):
@@ -145,6 +174,9 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         #self.warningLabel.set_text("Add event handler, row = %d, selected VM = %s\n " %(self.selectedAllVMRow, selectedVM))
        
         self.groupVMClist.append([selectedVM])
+        
+        self.totalVMsInGroup = self.totalVMsInGroup + 1
+        
         self.groupVMClist.select_row(0,0)
         self.allVMClist.select_row(0,0)  
         return
@@ -162,34 +194,109 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         #self.warningLabel.set_text("Remove event handler, row = %d, selected VM = %s\n " %(self.selectedAllVMRow, selectedVM))
        
         self.allVMClist.append([selectedVM])
+
+        self.totalVMsInGroup = self.totalVMsInGroup - 1
+        if self.totalVMsInGroup < 0:
+            self.totalVMsInGroup = 0
+        
         self.allVMClist.select_row(0,0)
         self.groupVMClist.select_row(0,0)
         return
+    
+    def groupNameTextEntryFocusOut(self, data=None):
+        self.newGroupName = self.newGroupTextEntry.get_text()
+        
+        # check if empty
+        if self.newGroupName == None or self.newGroupName == "":
+            self.show_error_message("ERROR: Affinity Group Name Cannot be empty")
+            return
+        
+        # check if duplicate
+        if self.sortedAllGroupsList.count(self.newGroupName) != 0:
+            self.show_error_message("ERROR: Affinity Group Name Already Exists. Please enter other name")
+            return
+        
+        # Clear Any Error Messages
+        self.hide_error_message()
         
     def cancelClicked(self, data=None):
         logging.debug("Cancelling creation of new affinity rule")
-        self.close()
+        self.close(None, None)
         return 1
         
     def createNewAffinityGroupClicked(self, data=None):
-
-        if(self.newGroupTextEntry.get_text_length() == 0):
-            self.show_error_message("Error: Group Name cannot be empty !!!")
-            return
-        else:
-        	self.hide_error_message()
-        	#write code here to get group name, new group members, description. and push it into xml files.
-        	self.newGroupName = self.newGroupTextEntry.get_text()
-        	text_buffer = self.newGroupDescription.get_buffer()
-        	self.newGroupDescription = text_buffer.get_text(text_buffer.get_start_iter(), text_buffer.get_end_iter(), True)
-            #Need to read groupVMClist data and check if it is more than 1.
-            #Push it to appropriate VM
-            #Handle exception here. 
-        pass
         
-    def close(self):
+        # Group Name Validation
+        self.newGroupName = self.newGroupTextEntry.get_text()
+        
+        # check if empty
+        if self.newGroupName == None or self.newGroupName == "":
+            self.show_error_message("ERROR: Affinity Group Name Cannot be empty")
+            return
+        
+        # check if duplicate
+        if self.sortedAllGroupsList.count(str(self.newGroupName)) != 0:
+            self.show_error_message("ERROR: Affinity Group Name Already Exists. Please enter other name")
+            return
+                
+        # get description
+        text_buffer = self.newGroupDescriptionTextView.get_buffer()
+        self.newGroupDescription = text_buffer.get_text(text_buffer.get_start_iter(), text_buffer.get_end_iter(), True)
+        
+        # VMList count validation (Minimum 2 vms must be selected)
+        if self.totalVMsInGroup <= 1:
+            self.show_error_message("ERROR: Ideally 2 or more virtual machines should be in an Affinity Group.")
+            return
+        
+        # Create rule
+        self.hide_error_message()
+        
+        # build all vms in group.
+        #vmsInGroup = []
+        #for i in range(self.totalVMsInGroup):
+         #   vmsInGroup.append(self.groupVMClist.get_text(i, 0))
+            
+        # update groups.xml configuration
+        #group="anunag"
+        #VM=['VM_Affinity1','VM_Affinity2']
+        #description="Anusha-Nag Group"
+        
+        try:
+            #vmsInGroup = []
+            #vmsInGroup.append("asdf")
+            #vmsInGroup.append("defg")
+            
+            # build all vms in group.
+            vmsInGroup = []
+            for i in range(self.totalVMsInGroup):
+                vmsInGroup.append(self.groupVMClist.get_text(i, 0))
+                
+            # Update Groups config file.
+            vmaffinityxmlutil.updateCreateRuleGroupsXML(str(self.newGroupName), vmsInGroup, str(self.newGroupDescription))    
+
+            # Update individual vm config file.
+            vmaffinityxmlutil.updateCreationRuleVM_XML(str(self.newGroupName), vmsInGroup)            
+             
+        except Exception, e:
+            self.err.show_err(_("Error creating Affinity Rule: %s") % str(e))
+            return
+                            
+        # show success pop-up.
+        self.err.show_info(_("Affinity Rule Successfully Created !!!"), "", "Rule Creation Success", False)
+        
+        # close window.
+        self.close(None, None)       
+        
+    
+    # Helper Methods:
+        
+    def insertAffinityGroupInVM(self, filepath, affinityGroupName):
+        pass  
+
+    def close(self, src_ignore=None, src2_ignore=None):
         logging.debug("Closing vmaffinity create new affinity rule window")
         self.topwin.hide()
+        self.destroy()
         return 1
     
     def show(self, parent):
@@ -198,7 +305,20 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         self.topwin.present()
 
     def _cleanup(self):
-        pass
+        self.allVMClist = None
+        self.groupVMClist = None
+        
+        #CList related variables
+        self.selectedAllVMRow = None
+        self.selectedAllVMColumn = None
+        self.selectedGroupVMRow = None
+        self.selectedGroupVMColumn = None
+        self.allVMList = None
+        self.totalVMsInGroup = 0
+        
+        #Helper Variables
+        self.sortedAllGroupsList = None
+        
     
     def allVMClist_row_selected(self, clist, row, column, event, data=None):
         self.selectedAllVMRow = row
@@ -216,8 +336,9 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         #self.warningLabel.set_text("you selected : " + str(self.selectedGroupVMRow) + str(self.selectedGroupVMColumn))
     
     def hide_error_message(self):
+    
         self.warningLabel.set_text("")
         self.warningLabel.set_visible(False)
-    
+
 vmmGObjectUI.type_register(vmaffinityCreateNewRule)
     

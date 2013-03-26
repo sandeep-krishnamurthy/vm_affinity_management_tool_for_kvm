@@ -14,30 +14,27 @@
 #
 
 import logging
-
 import gtk
 
 from virtManager.baseclass import vmmGObjectUI
 from virtManager import vmaffinityxmlutil
 from virtManager.vmaffinityxmlutil import GroupDetails
-from virtManager.error import vmmErrorDialog
 
-class vmaffinityDeleteRule(vmmGObjectUI):
+class vmaffinityViewRules(vmmGObjectUI):
     
-    #initialization code
+    # Initialization Code
     def __init__(self):
         
         #initialize all UI components to none
-        self.vmaDeleteruleBanner = None
+        self.viewRulesImageBanner = None
         self.configuredAffinityRulesScrolledwindow = None
-        self.selectedAffinityRuleVMsScrolledwindow = None
         self.selectedRuleDesTextview = None
-        self.cancelRuleDeletionButton = None
-        self.DeleteRuleButton = None
-        self.errorLabel = None
-       
+        self.selectedAffinityRuleVMsScrolledwindow = None
+        self.cancelViewRuleButton = None
+        self.okViewRuleButton = None
+        
         self.allGroupsClist = None
-        self.VMsInGroupClist = None       
+        self.VMsInGroupClist = None
         
         #CList related variables
         self.selectedGroupRow = None
@@ -45,29 +42,28 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         
         self.allGroupDictionary = None
         
-        vmmGObjectUI.__init__(self, "vmaffinity-deleterule.ui", "vmaffinity-deleterule")
-
+        #Initialize window
+        vmmGObjectUI.__init__(self, "vmaffinity-view-rules.ui", "vmaffinity-view-rules")
+        
         #Connect signals
-        self.window.connect_signals({
-            "on_cancelRuleDeletionButton_clicked": self.cancelClicked,
-            "on_DeleteRuleButton_clicked":self.deleteAffinityRuleButtonClicked,
-            "on_vmaffinity-deleterule_delete_event": self.close,})
+        self.window.connect_signals({ 
+        	"on_vmaffinity-view-configured-rules_delete_event":self.close,
+        	"on_cancelViewRuleButton_clicked":self.close,
+        	"on_okViewRuleButton_clicked":self.close,
+        })
         
-        #Initialize all UI components
+        #Initialize UI components
         self.initUIComponents()
-        
-        self.err = vmmErrorDialog()
         
         
     def initUIComponents(self):
         
-        self.vmaDeleteruleBanner = self.widget("vmaDeleteruleBanner")
+        self.viewRulesImageBanner = self.widget("viewRulesImageBanner")
         self.configuredAffinityRulesScrolledwindow = self.widget("configuredAffinityRulesScrolledwindow")
-        self.selectedAffinityRuleVMsScrolledwindow = self.widget("selectedAffinityRuleVMsScrolledwindow")
         self.selectedRuleDesTextview = self.widget("selectedRuleDesTextview")
-        self.cancelRuleDeletionButton = self.widget("cancelRuleDeletionButton")
-        self.DeleteRuleButton = self.widget("DeleteRuleButton")
-        self.errorLabel = self.widget("errorLabel")
+        self.selectedAffinityRuleVMsScrolledwindow = self.widget("selectedAffinityRuleVMsScrolledwindow")
+        self.cancelViewRuleButton = self.widget("cancelViewRuleButton")
+        self.okViewRuleButton = self.widget("okViewRuleButton")
         
         #Create List Objects
         self.allGroupsClist = gtk.CList(1, "allGroupsClist")
@@ -83,7 +79,7 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         self.VMsInGroupClist.set_shadow_type(gtk.SHADOW_OUT)
         self.VMsInGroupClist.column_titles_hide()
         self.VMsInGroupClist.set_column_width(0, 150)
-        
+        self.VMsInGroupClist.connect("select_row", self.VMsInGroupClist_row_selected)
         self.VMsInGroupClist.show()
         self.selectedAffinityRuleVMsScrolledwindow.add(self.VMsInGroupClist)
         
@@ -91,11 +87,12 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         self.init_banner()
         self.init_allGroupsClist()
         self.init_VMsInGroupClist()
-        self.init_errorMessage()
+
         
-                
-    def init_banner(self):
-        self.vmaDeleteruleBanner.set_from_file("/usr/local/share/virt-manager/icons/hicolor/16x16/actions/vmaffinitydeleterule.png")
+    def init_banner(self):	
+	    #TODO:Sandeep - Create a new banner for view rule.
+        self.viewRulesImageBanner.set_from_file("/usr/local/share/virt-manager/icons/hicolor/16x16/actions/vmaffinitycreaterule.png")
+    
     
     def init_allGroupsClist(self):
         #TODO: Sandeep - Call dictionary method here, initialize dictionary object and append all groups c list.
@@ -134,12 +131,23 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         
         for vm in memberVMs:
             self.VMsInGroupClist.append([vm])
-        
-    def init_errorMessage(self):
-        #Initially error message should be empty and error label should be invisible.
-        self.errorLabel.set_text("")
-        self.errorLabel.hide()
     
+    def close(self, src_ignore=None, src2_ignore=None):
+        logging.debug("Closing vmaffinity view affinity rules window")
+        self.topwin.hide()
+        return 1
+    
+    def show(self, parent):
+        logging.debug("Showing vmaffinity view affinity rules window")      
+        self.topwin.set_transient_for(parent)
+        self.topwin.present()
+
+    def _cleanup(self):
+        pass
+    
+    def VMsInGroupClist_row_selected(self, clist, row, column, event, data=None):
+        pass
+
     def allGroupsClist_row_selected(self, clist, row, column, event, data=None):
         self.selectedGroupRow = row
         self.selectedGroupColumn = column
@@ -163,74 +171,6 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         
         for vm in memberVMs:
             self.VMsInGroupClist.append([vm])
-            
-    #Event Handlers
-    
-    def deleteAffinityRuleButtonClicked(self, data=None):
-        #Add code here to read which group is selected, use dictionary, then
-        # Get group details object.
-        selectedGroupName = self.allGroupsClist.get_text(self.selectedGroupRow,self.selectedGroupColumn)
-        selectedGroupDetails = self.allGroupDictionary[selectedGroupName]
         
-        # get description
         
-        self.selectedRuleDesTextview.get_buffer().set_text(selectedGroupDetails.getDescription())
-        # get list of virtual machines in the group
-        memberVMs = selectedGroupDetails.getVMList()
-        
-        try:
-            # 1. Delete from group configuration file, 
-		    vmaffinityxmlutil.updateDeleteRuleGroupsXML(selectedGroupName)
-		    # 2. Take all vm names, use dictionary, go to respective files and delete group membership.
-		    vmaffinityxmlutil.updateDeleteRuleVM_XML(selectedGroupName, memberVMs)
-        
-        except Exception, e:
-            self.err.show_err(_("Error deleting Affinity Rule: %s") % str(e))
-            return
-                            
-        # show success pop-up.
-        self.err.show_info(_("Affinity Rule Successfully Deleted !!!"), "", "Rule Deletion Success", False)
-        
-        # close window.
-        self.close()    
-        
-    def show(self, parent):
-        logging.debug("Showing vmaffinity delete affinity rule window")       
-        self.topwin.set_transient_for(parent)
-        self.topwin.present()
-
-    def close(self):
-        logging.debug("Closing vmaffinity delete affinity rule window")
-        self.topwin.hide()
-        
-        self.selectedGroupRow = None
-        self.selectedGroupColumn = None
-        
-        self.allGroupDictionary = None
-        self.allGroupsClist = None
-        self.VMsInGroupClist = None 
-        return 1
-    
-    def cancelClicked(self, data=None):
-        self.close()
-            
-    def _cleanup(self):
-        #CList related variables
-        self.selectedGroupRow = None
-        self.selectedGroupColumn = None
-        
-        self.allGroupDictionary = None
-        self.allGroupsClist = None
-        self.VMsInGroupClist = None    
-    
-    def show_error_message(self, data):
-        
-        self.errorLabel.set_visible(True)
-        self.errorLabel.set_text(data)       
-    
-    def hide_error_message(self):
-        self.errorLabel.set_text("")
-        self.errorLabel.set_visible(False)
-  
-vmmGObjectUI.type_register(vmaffinityDeleteRule)
-    
+vmmGObjectUI.type_register(vmaffinityViewRules)        

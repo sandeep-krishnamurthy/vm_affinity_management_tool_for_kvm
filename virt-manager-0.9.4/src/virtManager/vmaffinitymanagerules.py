@@ -14,7 +14,6 @@
 #
 
 import logging
-
 import gtk
 
 from virtManager.baseclass import vmmGObjectUI
@@ -22,22 +21,27 @@ from virtManager import vmaffinityxmlutil
 from virtManager.vmaffinityxmlutil import GroupDetails
 from virtManager.error import vmmErrorDialog
 
-class vmaffinityDeleteRule(vmmGObjectUI):
+class vmaffinityManageRules(vmmGObjectUI):
     
-    #initialization code
+    # Initialization Code
     def __init__(self):
         
-        #initialize all UI components to none
-        self.vmaDeleteruleBanner = None
+        #initialize all UI components to none        
+        self.manageRuleBanner = None
         self.configuredAffinityRulesScrolledwindow = None
-        self.selectedAffinityRuleVMsScrolledwindow = None
         self.selectedRuleDesTextview = None
-        self.cancelRuleDeletionButton = None
-        self.DeleteRuleButton = None
+        self.selectedAffinityRuleVMsScrolledwindow = None
+        self.availableVirtualMachineScrolledwindow = None
+        self.updatedGroupVirtualMachineScrolledwindow = None
+        self.addVMToUpdatedAffinityGroupbutton = None
+        self.removeVMFromUpdatedAffinityGroup = None
+        self.cancelRuleManageButton = None
+        self.UpdateAffinityGroupButton = None
         self.errorLabel = None
-       
+        
         self.allGroupsClist = None
-        self.VMsInGroupClist = None       
+        self.VMsInGroupClist = None  
+        self.VMsInUpdatedGroupClist = None
         
         #CList related variables
         self.selectedGroupRow = None
@@ -45,28 +49,32 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         
         self.allGroupDictionary = None
         
-        vmmGObjectUI.__init__(self, "vmaffinity-deleterule.ui", "vmaffinity-deleterule")
-
-        #Connect signals
-        self.window.connect_signals({
-            "on_cancelRuleDeletionButton_clicked": self.cancelClicked,
-            "on_DeleteRuleButton_clicked":self.deleteAffinityRuleButtonClicked,
-            "on_vmaffinity-deleterule_delete_event": self.close,})
+        vmmGObjectUI.__init__(self, "vmaffinity-manage-affinity-rules.ui", "vmaffinity-manage-affinity-rules")
         
-        #Initialize all UI components
+        #Connect signals
+        self.window.connect_signals({"on_addVMToUpdatedAffinityGroupbutton_clicked": self.addVMToUpdatedAffinityGroup,
+        	"on_removeVMFromUpdatedAffinityGroup_clicked": self.removeVMFromUpdatedAffinityGroup,    				"on_cancelRuleManageButton_clicked": self.cancelRuleManagement, 
+        	"on_UpdateAffinityGroupButton_clicked": self.UpdateAffinityGroup,
+        })
+		
+		
+		#Initialize all UI components
         self.initUIComponents()
         
         self.err = vmmErrorDialog()
         
-        
     def initUIComponents(self):
-        
-        self.vmaDeleteruleBanner = self.widget("vmaDeleteruleBanner")
+    
+        self.manageRuleBanner = self.widget("manageRuleBanner")
         self.configuredAffinityRulesScrolledwindow = self.widget("configuredAffinityRulesScrolledwindow")
-        self.selectedAffinityRuleVMsScrolledwindow = self.widget("selectedAffinityRuleVMsScrolledwindow")
         self.selectedRuleDesTextview = self.widget("selectedRuleDesTextview")
-        self.cancelRuleDeletionButton = self.widget("cancelRuleDeletionButton")
-        self.DeleteRuleButton = self.widget("DeleteRuleButton")
+        self.selectedAffinityRuleVMsScrolledwindow = self.widget("selectedAffinityRuleVMsScrolledwindow")
+        self.availableVirtualMachineScrolledwindow = self.widget("availableVirtualMachineScrolledwindow")
+        self.updatedGroupVirtualMachineScrolledwindow = self.widget("updatedGroupVirtualMachineScrolledwindow")
+        self.addVMToUpdatedAffinityGroupbutton = self.widget("")
+        self.removeVMFromUpdatedAffinityGroup = self.widget("addVMToUpdatedAffinityGroupbutton")
+        self.cancelRuleManageButton = self.widget("cancelRuleManageButton")
+        self.UpdateAffinityGroupButton = self.widget("UpdateAffinityGroupButton")
         self.errorLabel = self.widget("errorLabel")
         
         #Create List Objects
@@ -92,11 +100,10 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         self.init_allGroupsClist()
         self.init_VMsInGroupClist()
         self.init_errorMessage()
-        
-                
-    def init_banner(self):
-        self.vmaDeleteruleBanner.set_from_file("/usr/local/share/virt-manager/icons/hicolor/16x16/actions/vmaffinitydeleterule.png")
     
+    def init_banner(self):
+        self.manageRuleBanner.set_from_file("/usr/local/share/virt-manager/icons/hicolor/16x16/actions/vmaffinitymanagerules.png")
+        
     def init_allGroupsClist(self):
         #TODO: Sandeep - Call dictionary method here, initialize dictionary object and append all groups c list.
         
@@ -163,44 +170,14 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         
         for vm in memberVMs:
             self.VMsInGroupClist.append([vm])
-            
-    #Event Handlers
     
-    def deleteAffinityRuleButtonClicked(self, data=None):
-        #Add code here to read which group is selected, use dictionary, then
-        # Get group details object.
-        selectedGroupName = self.allGroupsClist.get_text(self.selectedGroupRow,self.selectedGroupColumn)
-        selectedGroupDetails = self.allGroupDictionary[selectedGroupName]
-        
-        # get description
-        
-        self.selectedRuleDesTextview.get_buffer().set_text(selectedGroupDetails.getDescription())
-        # get list of virtual machines in the group
-        memberVMs = selectedGroupDetails.getVMList()
-        
-        try:
-            # 1. Delete from group configuration file, 
-		    vmaffinityxmlutil.updateDeleteRuleGroupsXML(selectedGroupName)
-		    # 2. Take all vm names, use dictionary, go to respective files and delete group membership.
-		    vmaffinityxmlutil.updateDeleteRuleVM_XML(selectedGroupName, memberVMs)
-        
-        except Exception, e:
-            self.err.show_err(_("Error deleting Affinity Rule: %s") % str(e))
-            return
-                            
-        # show success pop-up.
-        self.err.show_info(_("Affinity Rule Successfully Deleted !!!"), "", "Rule Deletion Success", False)
-        
-        # close window.
-        self.close()    
-        
     def show(self, parent):
-        logging.debug("Showing vmaffinity delete affinity rule window")       
+        logging.debug("Showing vmaffinity manage affinity rule window")       
         self.topwin.set_transient_for(parent)
         self.topwin.present()
 
-    def close(self):
-        logging.debug("Closing vmaffinity delete affinity rule window")
+    def close(self, src_ignore=None, src2_ignore=None):
+        logging.debug("Closing vmaffinity manage affinity rule window")
         self.topwin.hide()
         
         self.selectedGroupRow = None
@@ -231,6 +208,17 @@ class vmaffinityDeleteRule(vmmGObjectUI):
     def hide_error_message(self):
         self.errorLabel.set_text("")
         self.errorLabel.set_visible(False)
-  
-vmmGObjectUI.type_register(vmaffinityDeleteRule)
     
+    def addVMToUpdatedAffinityGroup(self):
+        pass
+    
+    def removeVMFromUpdatedAffinityGroup(self):
+        pass
+    
+    def cancelRuleManagement(self):
+        pass
+    
+    def UpdateAffinityGroup(self):
+        pass
+        
+vmmGObjectUI.type_register(vmaffinityManageRules)

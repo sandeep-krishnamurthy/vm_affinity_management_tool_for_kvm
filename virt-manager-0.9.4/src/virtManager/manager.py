@@ -135,6 +135,8 @@ class vmmManager(vmmGObjectUI):
             "on_menu_vmaffinity_about_activate": self.show_vmaffinity_about,
             "on_menu_vmaffinity_createaffinityrule_activate": self.show_vmaffinity_createnewaffinityrule,
             "on_menu_vmaffinity_deleterule_activate": self.show_vmaffinity_deleteaffinityrule,
+            "on_menu_vmaffinity_viewrules_activate": self.show_vmaffinity_viewrules,
+            "on_menu_vmaffinity_managerules_activate": self.show_vmaffinity_managerules,
             #end Sandeep
         })
 
@@ -527,7 +529,13 @@ class vmmManager(vmmGObjectUI):
         
     def show_vmaffinity_deleteaffinityrule(self, src_ignore=None):
         self.emit("action-show-delete-affinity-rule")
-
+    
+    def show_vmaffinity_viewrules(self, src_ignore=None):
+        self.emit("action-show-view-affinity-rules")
+    
+    def show_vmaffinity_managerules(self, src_ignore=None):
+        self.emit("action-show-manage-affinity-rules")
+        
     #Stop Sandeep
 
     def show_preferences(self, src_ignore):
@@ -1266,4 +1274,6 @@ vmmManager.signal_new(vmmManager, "add-default-conn", [])
 vmmManager.signal_new(vmmManager, "action-show-afinnity-about", [])
 vmmManager.signal_new(vmmManager, "action-show-create-new-affinity-rule", [])
 vmmManager.signal_new(vmmManager, "action-show-delete-affinity-rule", [])
+vmmManager.signal_new(vmmManager, "action-show-view-affinity-rules",[])
+vmmManager.signal_new(vmmManager, "action-show-manage-affinity-rules",[])
 #Stop Sandeep

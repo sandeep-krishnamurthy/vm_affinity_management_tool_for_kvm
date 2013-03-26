@@ -1,0 +1,230 @@
+#
+# Copyright (C) 2013 IIIT-B
+# Copyright (C) 2013 Sandeep Krishnamurthy <sandeep.k@iiitb.org> 
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+import xml.etree.ElementTree as ET
+
+##################################
+######## Pre-Computation #########
+##################################
+
+def loadGroupsToList():
+                #TODO: Use configuration.filepath, don't use hard coded path
+                doc = ET.parse("/home/sandeep/AffinityGroups.xml")
+                s = doc.getroot()
+                l=[]
+                for item in s:
+                                l.append(item.attrib['name'])
+                                sortedlist = mergesort(l)
+                return sortedlist
+
+def clearGroupsList(l): 
+                if(l is not None):
+                                        l=None
+
+def search(list,key,low,high):
+                        while(low<=high):
+                                                middle=(low+high)/2
+                                                if(key == list[middle] or key.lower() == (list[middle]).lower()):
+                                                                return 'SUCCESS'
+                                                else:
+                                                                k=0
+                                                                s=list[middle]
+                                                                while(s[k] is key[k]):
+                                                                                k=k+1
+                                                                                if(k==len(s)):
+                                                                                                break
+                                                                                if(k==len(key)):
+                                                                                                break
+                                                                if(k<len(s) and k<len(key)):
+                                                                                if(ord(s[k]) < ord(key[k])):
+                                                                                                low=middle+1
+                                                                                else:
+                                                                                                high=middle-1
+                                                                elif(k==len(s)):
+                                                                                                low=middle+1   
+                                                                else:
+                                                                                                high=middle-1
+                        return 'FAILURE'
+
+def merge(left, right):
+                                result = []
+                                i, j = 0, 0
+                                while(i < len(left) and j< len(right)):
+                                        s1=left[i]
+                                        s2=right[j]
+                                        k=0
+                                        while(s1[k] is s2[k]):
+                                                        k=k+1
+                                                        if(k==len(s1)):
+                                                           break
+                                                        if(k==len(s2)):
+                                                           break
+                                        if(k<len(s1) and k<len(s2)):
+                                                if(ord(s1[k]) < ord(s2[k])):
+                                                                result.append(left[i])
+                                                                i=i+1
+                                                else:
+                                                                        result.append(right[j])
+                                                                        j=j+1
+                                        elif(k==len(s1)):
+                                                        result.append(left[i])
+                                                        i=i+1
+                                        else:
+                                                        result.append(right[j])
+                                                        j=j+1
+                                result += left[i:]
+                                result += right[j:]
+                                return result
+                                
+def mergesort(list):
+                                if len(list) < 2:
+                                        return list
+                                middle = len(list) / 2
+                                left = mergesort(list[:middle])
+                                right = mergesort(list[middle:])
+                                return merge(left, right)
+
+##############################################
+######## New Affinity Rules Creation #########
+##############################################
+
+# Updating "Groups.xml" configuration file.
+def updateCreateRuleGroupsXML(groupName, VMlist, description):
+                           #TODO: Use configuration.filepath, don't use hard coded path
+                                doc = ET.parse("/home/sandeep/AffinityGroups.xml")
+                                s = doc.getroot()
+                                myattributes={"name": groupName}                
+                                ET.SubElement(s,'group',attrib=myattributes)
+                                #TODO: Use configuration.filepath, don't use hard coded path
+                                doc.write('/home/sandeep/AffinityGroups.xml')
+                                groups=doc.findall("group")
+                                descriptionTag=ET.SubElement(groups[len(groups)-1],"Description")
+                                descriptionTag.text=description
+                                for VMName in VMlist:
+                                    VM=ET.SubElement(groups[len(groups)-1],"VM")
+                                    VM.text=VMName
+		
+		                        #TODO: Use configuration.filepath, don't use hard coded path
+                                doc.write('/home/sandeep/AffinityGroups.xml')
+                                                                
+# Update individual virtual machine xml files.
+def updateCreationRuleVM_XML(groupName,L):
+                                for VM in L:
+                                                doc = ET.parse("/etc/libvirt/qemu/"+VM+".xml")
+                                                s = doc.getroot()
+                                                affinityTag=doc.findall("affinity")
+                                                if len(affinityTag)==0:
+                                                                affinity=ET.SubElement(s,'affinity')
+                                                                group=ET.SubElement(affinity,'group')	
+                                                                group.text=groupName  
+                                                                doc.write("/etc/libvirt/qemu/"+VM+".xml")
+                                                else :                        
+                                                                group=ET.SubElement(affinityTag[0],'group')	
+                                                                group.text=groupName  
+                                                                doc.write("/etc/libvirt/qemu/"+VM+".xml") 
+
+
+######################################
+######## View Affinity Rules #########
+######################################
+
+                                                
+################### 1. Dictionary generateAffinityGroupDetails() ################################
+# Dictionary : key = group name
+# value = groupDetailsObject => GroupDetailsClass = description, list of vms
+
+def getAffinityGroupDetails():
+                                doc=ET.parse("/home/sandeep/AffinityGroups.xml")
+                                s=doc.getroot()   
+                                #L=[] 
+                                dictionary = {}
+                                for groups in s.findall("group"):
+                                                                #d={}
+                                                                description=groups.find("Description")
+                                                                VMs=[]
+                                                                for VM in groups.findall("VM"):
+                                                                                VMs.append(VM.text)  
+                                                                GroupDetailsObject=GroupDetails()
+                                                                if description == None:
+                                                                    data = ""
+                                                                else:
+                                                                    data = description.text
+                                                                #detail=GroupDetailsObject.groupdetails(data,VMs)  
+                                                                GroupDetailsObject.groupdetails(data, VMs)
+                                                                groupName=groups.attrib['name']            
+                                                                #d[groupName]=detail
+                                                                dictionary[groupName] = GroupDetailsObject
+                                                                #L.append(d)
+                                #return L
+                                return dictionary
+
+class GroupDetails:
+        
+        def __init__(self):
+            self.description = ""
+            self.vmList = []
+                
+        def groupdetails(self, description,L):
+            self.description = description
+            self.vmList = L
+                #detail=[]
+                                #detail.append(description)
+                                #detail.append(L)
+                #	return detail
+            return self
+        
+        def getDescription(self):
+            return self.description
+        
+        def getVMList(self):
+            return self.vmList
+                                
+######################################
+######## Delete Affinity Rules #######
+######################################
+
+# Update "AffinityGroups.xml" configuration file.
+def updateDeleteRuleGroupsXML(groupName):
+                                                 VMs=[]
+                                                 #TODO: Use configuration.filepath, don't use hard coded path
+                                                 doc=ET.parse("/home/sandeep/AffinityGroups.xml")
+                                                 s=doc.getroot()
+                                                 for group in doc.findall("group"):
+                                                                   if group.attrib['name']==groupName:
+                                                                                for VM in group.findall("VM"):
+                                                                                        VMs.append(VM.text)  
+                                                                                s.remove(group)
+                                                                                #TODO: Use configuration.filepath, don't use hard coded path
+                                                                                doc.write('/home/sandeep/AffinityGroups.xml')  
+                                                                                return VMs
+
+# Update individula virtual machine xml configuration file
+def updateDeleteRuleVM_XML(groupName,L):     
+                                for VM in L:
+                                                doc=ET.parse("/etc/libvirt/qemu/"+VM+".xml")
+                                                s=doc.getroot()
+                                                affinity=s.find("affinity")
+                                                for group in affinity.findall("group"):
+                                                                if(group.text==groupName):
+                                                                                affinity.remove(group)
+                                                                                doc.write("/etc/libvirt/qemu/"+VM+".xml")
+                                                groups=affinity.findall("group")
+                                                if(len(groups)==1):
+                                                                s.remove(affinity)
+
+######################################
+######## Manage Affinity Rules #######
+######################################
+
