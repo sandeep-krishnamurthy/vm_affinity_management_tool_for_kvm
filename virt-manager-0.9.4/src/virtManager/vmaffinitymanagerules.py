@@ -462,9 +462,9 @@ class vmaffinityManageRules(vmmGObjectUI):
         
         # Just for testing TODO: SHOULD BE REMOVED.
         
-        allVMsInMachine.append("vmaffinity3")
-        allVMsInMachine.append("vmaffinity4")
-        allVMsInMachine.append("vmaffinity5")
+        #allVMsInMachine.append("vmaffinity3")
+        #allVMsInMachine.append("vmaffinity4")
+        #allVMsInMachine.append("vmaffinity5")
         
         return allVMsInMachine
     

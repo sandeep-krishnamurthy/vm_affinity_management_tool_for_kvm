@@ -148,9 +148,9 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
 		
 		# Just for testing TODO: SHOULD BE REMOVED.
         
-        self.allVMClist.append(['vmaffinity3'])
-        self.allVMClist.append(['vmaffinity4'])
-        self.allVMClist.append(['vmaffinity5'])
+        #self.allVMClist.append(['vmaffinity3'])
+        #self.allVMClist.append(['vmaffinity4'])
+        #self.allVMClist.append(['vmaffinity5'])
         
         #default selection
         self.allVMClist.select_row(0,0)
