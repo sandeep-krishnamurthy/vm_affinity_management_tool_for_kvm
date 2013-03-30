@@ -25,6 +25,9 @@ class vmaffinityViewRules(vmmGObjectUI):
     # Initialization Code
     def __init__(self):
         
+        # check if groups config file exists
+        vmaffinityxmlutil.checkIfGroupsConfigExists()
+
         #initialize all UI components to none
         self.viewRulesImageBanner = None
         self.configuredAffinityRulesScrolledwindow = None
@@ -91,7 +94,7 @@ class vmaffinityViewRules(vmmGObjectUI):
         
     def init_banner(self):	
 	    #TODO:Sandeep - Create a new banner for view rule.
-        self.viewRulesImageBanner.set_from_file("/usr/local/share/virt-manager/icons/hicolor/16x16/actions/vmaffinitycreaterule.png")
+        self.viewRulesImageBanner.set_from_file("/usr/local/share/virt-manager/icons/hicolor/16x16/actions/vmaffinityviewrules.png")
     
     
     def init_allGroupsClist(self):
@@ -115,6 +118,11 @@ class vmaffinityViewRules(vmmGObjectUI):
         #TODO: Sandeep - Initially set first dictionary entry, vmlist and description.
         self.VMsInGroupClist.clear()
         
+        # If count of groups itself is zero there is nothing to do.
+        countOfGroups = len(self.allGroupDictionary)
+        if(countOfGroups == 0):
+            return
+            
         selectedGroupName = self.allGroupsClist.get_text(0,0)
 
         if(selectedGroupName == None):
@@ -135,15 +143,50 @@ class vmaffinityViewRules(vmmGObjectUI):
     def close(self, src_ignore=None, src2_ignore=None):
         logging.debug("Closing vmaffinity view affinity rules window")
         self.topwin.hide()
+        
+        self.reset_state()
+        
         return 1
     
+    def reset_state(self):
+        
+        #initialize all UI components to none
+        self.viewRulesImageBanner = None
+        self.configuredAffinityRulesScrolledwindow = None
+        self.selectedRuleDesTextview = None
+        self.selectedAffinityRuleVMsScrolledwindow = None
+        self.cancelViewRuleButton = None
+        self.okViewRuleButton = None
+        
+        self.allGroupsClist = None
+        self.VMsInGroupClist = None
+        
+        #CList related variables
+        self.selectedGroupRow = None
+        self.selectedGroupColumn = None
+        
+        self.allGroupDictionary = None
+        
+        #Initialize window
+        vmmGObjectUI.__init__(self, "vmaffinity-view-rules.ui", "vmaffinity-view-rules")
+        
+        #Connect signals
+        self.window.connect_signals({ 
+        	"on_vmaffinity-view-configured-rules_delete_event":self.close,
+        	"on_cancelViewRuleButton_clicked":self.close,
+        	"on_okViewRuleButton_clicked":self.close,
+        })
+        
+        #Initialize UI components
+        self.initUIComponents()
+        
     def show(self, parent):
         logging.debug("Showing vmaffinity view affinity rules window")      
         self.topwin.set_transient_for(parent)
-        self.topwin.present()
-
+        self.topwin.present()        
+       
     def _cleanup(self):
-        pass
+        self.reset_state()
     
     def VMsInGroupClist_row_selected(self, clist, row, column, event, data=None):
         pass

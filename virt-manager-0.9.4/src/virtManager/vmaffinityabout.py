@@ -30,7 +30,7 @@ class vmaffinityAbout(vmmGObjectUI):
         logging.debug("Showing vmaffinity about")
         self.topwin.present()
 
-    def close(self):
+    def close(self, data=None):
         logging.debug("Closing vmaffinity about")
         self.topwin.hide()
         return 1

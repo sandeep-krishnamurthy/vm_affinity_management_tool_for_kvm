@@ -27,6 +27,9 @@ class vmaffinityDeleteRule(vmmGObjectUI):
     #initialization code
     def __init__(self):
         
+        # check if groups config file exists
+        vmaffinityxmlutil.checkIfGroupsConfigExists()
+
         #initialize all UI components to none
         self.vmaDeleteruleBanner = None
         self.configuredAffinityRulesScrolledwindow = None
@@ -49,16 +52,53 @@ class vmaffinityDeleteRule(vmmGObjectUI):
 
         #Connect signals
         self.window.connect_signals({
-            "on_cancelRuleDeletionButton_clicked": self.cancelClicked,
+            "on_cancelRuleDeletionButton_clicked": self.close,
             "on_DeleteRuleButton_clicked":self.deleteAffinityRuleButtonClicked,
             "on_vmaffinity-deleterule_delete_event": self.close,})
         
         #Initialize all UI components
         self.initUIComponents()
         
+
         self.err = vmmErrorDialog()
         
+    def reset_state(self):
         
+        # check if groups config file exists
+        vmaffinityxmlutil.checkIfGroupsConfigExists()
+
+        #initialize all UI components to none
+        self.vmaDeleteruleBanner = None
+        self.configuredAffinityRulesScrolledwindow = None
+        self.selectedAffinityRuleVMsScrolledwindow = None
+        self.selectedRuleDesTextview = None
+        self.cancelRuleDeletionButton = None
+        self.DeleteRuleButton = None
+        self.errorLabel = None
+       
+        self.allGroupsClist = None
+        self.VMsInGroupClist = None       
+        
+        #CList related variables
+        self.selectedGroupRow = None
+        self.selectedGroupColumn = None
+        
+        self.allGroupDictionary = None
+        
+        vmmGObjectUI.__init__(self, "vmaffinity-deleterule.ui", "vmaffinity-deleterule")
+
+        #Connect signals
+        self.window.connect_signals({
+            "on_cancelRuleDeletionButton_clicked": self.close,
+            "on_DeleteRuleButton_clicked":self.deleteAffinityRuleButtonClicked,
+            "on_vmaffinity-deleterule_delete_event": self.close,})
+        
+        #Initialize all UI components
+        self.initUIComponents()
+        
+
+        self.err = vmmErrorDialog()
+       
     def initUIComponents(self):
         
         self.vmaDeleteruleBanner = self.widget("vmaDeleteruleBanner")
@@ -103,8 +143,8 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         self.allGroupsClist.clear()
         
         self.allGroupDictionary = vmaffinityxmlutil.getAffinityGroupDetails()
-        countOfGroups = len(self.allGroupDictionary)
-        if(countOfGroups == 0):
+        groupsCount = len(self.allGroupDictionary)
+        if groupsCount == 0:
             return
         
         for group in self.allGroupDictionary.keys():
@@ -117,6 +157,11 @@ class vmaffinityDeleteRule(vmmGObjectUI):
     def init_VMsInGroupClist(self):
         #TODO: Sandeep - Initially set first dictionary entry, vmlist and description.
         self.VMsInGroupClist.clear()
+        
+        # If there are no groups at all nothing to do here.
+        groupsCount = len(self.allGroupDictionary)
+        if groupsCount == 0:
+            return
         
         selectedGroupName = self.allGroupsClist.get_text(0,0)
 
@@ -192,36 +237,25 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         self.err.show_info(_("Affinity Rule Successfully Deleted !!!"), "", "Rule Deletion Success", False)
         
         # close window.
-        self.close()    
+        self.close(None, None)    
         
     def show(self, parent):
         logging.debug("Showing vmaffinity delete affinity rule window")       
         self.topwin.set_transient_for(parent)
         self.topwin.present()
 
-    def close(self):
+
+    def close(self, src_ignore=None, src2_ignore=None):
+        
         logging.debug("Closing vmaffinity delete affinity rule window")
         self.topwin.hide()
         
-        self.selectedGroupRow = None
-        self.selectedGroupColumn = None
-        
-        self.allGroupDictionary = None
-        self.allGroupsClist = None
-        self.VMsInGroupClist = None 
+        self.reset_state()
+ 
         return 1
-    
-    def cancelClicked(self, data=None):
-        self.close()
-            
+               
     def _cleanup(self):
-        #CList related variables
-        self.selectedGroupRow = None
-        self.selectedGroupColumn = None
-        
-        self.allGroupDictionary = None
-        self.allGroupsClist = None
-        self.VMsInGroupClist = None    
+        self.reset_state()
     
     def show_error_message(self, data):
         

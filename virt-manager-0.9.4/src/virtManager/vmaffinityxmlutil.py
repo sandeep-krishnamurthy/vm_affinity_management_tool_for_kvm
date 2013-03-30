@@ -14,16 +14,30 @@
 #
 
 import xml.etree.ElementTree as ET
+import os
+
 
 ##################################
 ######## Pre-Computation #########
 ##################################
 
+def checkIfGroupsConfigExists():
+	groupsXMLConfig = "/usr/local/share/virt-manager/AffinityGroups.xml"
+	
+	try:
+		fp = open(groupsXMLConfig, "r")
+		fp.close()
+	except Exception, e:
+		fp=open(groupsXMLConfig,'w+')
+		fp.write('<VMAffinityGroups></VMAffinityGroups>')
+		fp.close()
+
 def loadGroupsToList():
                 #TODO: Use configuration.filepath, don't use hard coded path
-                doc = ET.parse("/home/sandeep/AffinityGroups.xml")
+                doc = ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
                 s = doc.getroot()
                 l=[]
+                sortedlist = []
                 for item in s:
                                 l.append(item.attrib['name'])
                                 sortedlist = mergesort(l)
@@ -103,12 +117,12 @@ def mergesort(list):
 # Updating "Groups.xml" configuration file.
 def updateCreateRuleGroupsXML(groupName, VMlist, description):
                            #TODO: Use configuration.filepath, don't use hard coded path
-                                doc = ET.parse("/home/sandeep/AffinityGroups.xml")
+                                doc = ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
                                 s = doc.getroot()
                                 myattributes={"name": groupName}                
                                 ET.SubElement(s,'group',attrib=myattributes)
                                 #TODO: Use configuration.filepath, don't use hard coded path
-                                doc.write('/home/sandeep/AffinityGroups.xml')
+                                doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
                                 groups=doc.findall("group")
                                 descriptionTag=ET.SubElement(groups[len(groups)-1],"Description")
                                 descriptionTag.text=description
@@ -117,7 +131,7 @@ def updateCreateRuleGroupsXML(groupName, VMlist, description):
                                     VM.text=VMName
 		
 		                        #TODO: Use configuration.filepath, don't use hard coded path
-                                doc.write('/home/sandeep/AffinityGroups.xml')
+                                doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
                                                                 
 # Update individual virtual machine xml files.
 def updateCreationRuleVM_XML(groupName,L):
@@ -146,7 +160,7 @@ def updateCreationRuleVM_XML(groupName,L):
 # value = groupDetailsObject => GroupDetailsClass = description, list of vms
 
 def getAffinityGroupDetails():
-                                doc=ET.parse("/home/sandeep/AffinityGroups.xml")
+                                doc=ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
                                 s=doc.getroot()   
                                 #L=[] 
                                 dictionary = {}
@@ -199,7 +213,7 @@ class GroupDetails:
 def updateDeleteRuleGroupsXML(groupName):
                                                  VMs=[]
                                                  #TODO: Use configuration.filepath, don't use hard coded path
-                                                 doc=ET.parse("/home/sandeep/AffinityGroups.xml")
+                                                 doc=ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
                                                  s=doc.getroot()
                                                  for group in doc.findall("group"):
                                                                    if group.attrib['name']==groupName:
@@ -207,7 +221,7 @@ def updateDeleteRuleGroupsXML(groupName):
                                                                                         VMs.append(VM.text)  
                                                                                 s.remove(group)
                                                                                 #TODO: Use configuration.filepath, don't use hard coded path
-                                                                                doc.write('/home/sandeep/AffinityGroups.xml')  
+                                                                                doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')  
                                                                                 return VMs
 
 # Update individula virtual machine xml configuration file
@@ -228,3 +242,69 @@ def updateDeleteRuleVM_XML(groupName,L):
 ######## Manage Affinity Rules #######
 ######################################
 
+def updateGroupConfig(VMNameList, GroupName):
+	tree = ET.parse('/usr/local/share/virt-manager/AffinityGroups.xml')
+	root = tree.getroot()	
+	for entry in root.findall('group'):
+		name=entry.get('name')
+		if name==GroupName:
+			#print name
+			for vms in entry.findall('VM'):
+				#print vms.text				
+				entry.remove(vms)		
+			for vmss in VMNameList:
+				VM=ET.SubElement(entry,'VM')
+				VM.text=vmss				
+			break
+	tree.write('/usr/local/share/virt-manager/AffinityGroups.xml')
+	return True
+
+def removeGroupFromVMConfig(vmpath, groupname):
+	tree = ET.parse(vmpath)
+	root = tree.getroot()
+	flag=1
+	affinity=root.find('affinity')
+	for entry in affinity.findall('group'):
+		group=entry.text
+		if group==groupname:
+			affinity.remove(entry)
+			flag=0
+			break
+	tree.write(vmpath)
+	if flag==0:
+		return True
+	else:
+		return False
+
+def addGroupToVMConfig(vmpath, groupname):
+	tree = ET.parse(vmpath)
+	root = tree.getroot()
+	affinity=root.find('affinity')
+	group=ET.SubElement(affinity,'group')
+	group.text=groupname
+	tree.write(vmpath)
+	return True
+
+def RefreshGroup(oldlist,newlist,groupname):
+	updateGroupConfig(newlist,groupname)
+	for vms in oldlist:
+		if(newlist.count(vms)==0):
+			removeGroupFromVMConfig("/etc/libvirt/qemu/"+vms+".xml",groupname)
+		else:
+			newlist.remove(vms)
+	for vms in newlist:
+		addGroupToVMConfig("/etc/libvirt/qemu/"+vms+".xml",groupname)
+	return True
+
+############################
+######## Migration #########
+############################
+
+def isVMAffineToOtherVM(vmname):
+	doc=ET.parse("/etc/libvirt/qemu/"+vmname+".xml")
+	s=doc.getroot()
+	affinity=s.find("affinity")
+	if(len(affinity)==0):
+		return False
+	else:
+		return True

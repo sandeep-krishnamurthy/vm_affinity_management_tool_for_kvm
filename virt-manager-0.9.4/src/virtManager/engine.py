@@ -639,28 +639,28 @@ class vmmEngine(vmmGObject):
     def _get_createnewaffinityrule_dialog(self, src):
 
         if self.windowVMAffinityCreateNewAffinityRule:
-            return self.windowVMAffinityCreateNewAffinityRule
+            self.windowVMAffinityCreateNewAffinityRule = None
 
         self.windowVMAffinityCreateNewAffinityRule = vmaffinityCreateNewRule()
         return self.windowVMAffinityCreateNewAffinityRule
     
     def _get_deleteaffinityrule_dialog(self):
         if self.windowVMAffinityDeleteAffinityRule:
-            return self.windowVMAffinityDeleteAffinityRule
+            self.windowVMAffinityDeleteAffinityRule = None
         
         self.windowVMAffinityDeleteAffinityRule = vmaffinityDeleteRule()
         return self.windowVMAffinityDeleteAffinityRule
     
     def _get_viewaffinityrules_dialog(self):
         if self.windowVMAffinityViewRules:
-            return self.windowVMAffinityViewRules
+        	self.windowVMAffinityViewRules = None
         
         self.windowVMAffinityViewRules = vmaffinityViewRules()
         return self.windowVMAffinityViewRules
     
     def _get_manageaffinityrules_dialog(self):
         if self.windowVMAffinityManageRules:
-            return self.windowVMAffinityManageRules
+            self.windowVMAffinityManageRules = None
         
         self.windowVMAffinityManageRules = vmaffinityManageRules()
         return self.windowVMAffinityManageRules

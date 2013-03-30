@@ -32,6 +32,7 @@ from virtManager import util
 from virtManager.baseclass import vmmGObjectUI
 from virtManager.asyncjob import vmmAsyncJob
 from virtManager.domain import vmmDomain
+from virtManager import vmaffinityxmlutil
 
 def uri_join(uri_tuple):
     scheme, user, host, path, query, fragment = uri_tuple
@@ -426,7 +427,15 @@ class vmmMigrateDialog(vmmGObjectUI):
         rate = self.get_config_rate()
         port = self.get_config_port()
         max_downtime = self.get_config_max_downtime()
-
+        
+        #Start sandeep
+        vmName = self.vm.get_name()
+        
+        if vmaffinityxmlutil.isVMAffineToOtherVM(vmName) == True:
+        	return self.err.val_err(_("Cannot Migrate this VM because it is affine with other virtual Machines."))
+		
+		# Stop Sandeep
+		
         if self.get_config_max_downtime_enabled() and max_downtime == 0:
             return self.err.val_err(_("max downtime must be greater than 0."))
 
@@ -440,7 +449,8 @@ class vmmMigrateDialog(vmmGObjectUI):
             return self.err.val_err(_("Port must be greater than 0."))
 
         return True
-
+    
+    
     def finish(self, src_ignore):
         try:
             if not self.validate():

@@ -26,6 +26,9 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
     # Initialization Code
     def __init__(self):
         
+        # check if groups config file exists
+        vmaffinityxmlutil.checkIfGroupsConfigExists()
+        
         #initialize all UI components to none
         self.allVMScrolledWindow = None
         self.newGroupVMScrolledWindow = None
@@ -60,7 +63,7 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
             "on_cancelNewRuleCreationButton_clicked":self.cancelClicked,
             "on_CreateNewRuleButton_clicked":self.createNewAffinityGroupClicked,
             "on_newAffinityGroupNameTextEntry_focus_out_event":self.groupNameTextEntryFocusOut,
-            "on_vmaffinitycreaterulewindow_delete_event": self.close,
+            "on_vmaffinity-createnewrule_delete_event": self.close,
             })
         
         #Initialize UI components
@@ -141,8 +144,13 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
             self.allVMClist.append([name])
         
         # just for testing
-        self.allVMClist.append(["vmaffinity1"])
-
+        #self.allVMClist.append(["vmaffinity1"])
+		
+		# Just for testing TODO: SHOULD BE REMOVED.
+        
+        self.allVMClist.append(['vmaffinity3'])
+        self.allVMClist.append(['vmaffinity4'])
+        self.allVMClist.append(['vmaffinity5'])
         
         #default selection
         self.allVMClist.select_row(0,0)
@@ -296,15 +304,23 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
     def close(self, src_ignore=None, src2_ignore=None):
         logging.debug("Closing vmaffinity create new affinity rule window")
         self.topwin.hide()
-        self.destroy()
+        
+        self.reset_state()
+		
         return 1
     
-    def show(self, parent):
-        logging.debug("Showing vmaffinity create new affinity rule window")       
-        self.topwin.set_transient_for(parent)
-        self.topwin.present()
-
-    def _cleanup(self):
+    def reset_state(self):
+    	#initialize all UI components to none
+        self.allVMScrolledWindow = None
+        self.newGroupVMScrolledWindow = None
+        self.newGroupTextEntry = None
+        self.newGroupDescriptionTextView = None
+        self.createNewRuleBanner = None
+        self.addVMToGroupButton = None
+        self.removeVMFromGroupButton = None
+        self.cancelNewRuleCreationButton = None
+        self.createNewRuleButton = None
+        self.warningLabel = None
         self.allVMClist = None
         self.groupVMClist = None
         
@@ -319,6 +335,33 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         #Helper Variables
         self.sortedAllGroupsList = None
         
+        vmmGObjectUI.__init__(self, "vmaffinity-createnewrule.ui", "vmaffinity-createnewrule")
+
+        #Connect signals
+        self.window.connect_signals({
+            "on_addVMToAffinityGroupbutton_clicked": self.addVMToGroupClicked,
+            "on_removeVMFromAffinityGroup_clicked": self.removeVMFromGroupClicked,
+            "on_cancelNewRuleCreationButton_clicked":self.cancelClicked,
+            "on_CreateNewRuleButton_clicked":self.createNewAffinityGroupClicked,
+            "on_newAffinityGroupNameTextEntry_focus_out_event":self.groupNameTextEntryFocusOut,
+            "on_vmaffinity-createnewrule_delete_event": self.close,
+            })
+        
+        #Initialize UI components
+        self.initUIComponents()
+        
+        #Initialize helper variables
+        self.sortedAllGroupsList = vmaffinityxmlutil.loadGroupsToList()
+    
+    def show(self, parent):
+        logging.debug("Showing vmaffinity create new affinity rule window")       
+        self.topwin.set_transient_for(parent)
+        self.topwin.present()
+
+
+    def _cleanup(self):
+        
+        self.reset_state() 
     
     def allVMClist_row_selected(self, clist, row, column, event, data=None):
         self.selectedAllVMRow = row
@@ -341,4 +384,3 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         self.warningLabel.set_visible(False)
 
 vmmGObjectUI.type_register(vmaffinityCreateNewRule)
-    

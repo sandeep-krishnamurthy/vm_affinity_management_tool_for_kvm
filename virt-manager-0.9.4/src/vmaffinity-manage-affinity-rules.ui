@@ -8,7 +8,7 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="border_width">2</property>
-    <property name="title" translatable="yes">Delete Affinity Rule</property>
+    <property name="title" translatable="yes">Manage Affinity Rule</property>
     <property name="window_position">center-always</property>
     <property name="default_width">700</property>
     <property name="default_height">700</property>
@@ -293,13 +293,13 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="removeVMFromUpdatedAffinityGroup">
+                                  <object class="GtkButton" id="removeVMFromUpdatedAffinityGroupButton">
                                     <property name="label" translatable="yes">&lt;&lt; Remove</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="use_action_appearance">False</property>
-                                    <signal name="clicked" handler="on_removeVMFromUpdatedAffinityGroup_clicked" swapped="no"/>
+                                    <signal name="clicked" handler="on_removeVMFromUpdatedAffinityGroupButton_clicked" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
