@@ -249,7 +249,9 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
                 
         # get description
         text_buffer = self.newGroupDescriptionTextView.get_buffer()
-        self.newGroupDescription = text_buffer.get_text(text_buffer.get_start_iter(), text_buffer.get_end_iter(), True)
+        self.newGroupDescription = ""
+        if text_buffer.get_text(text_buffer.get_start_iter(), text_buffer.get_end_iter(), True) != None:
+        	self.newGroupDescription = text_buffer.get_text(text_buffer.get_start_iter(), text_buffer.get_end_iter(), True)
         
         # VMList count validation (Minimum 2 vms must be selected)
         if self.totalVMsInGroup <= 1:

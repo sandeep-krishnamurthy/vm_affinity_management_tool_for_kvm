@@ -187,7 +187,11 @@ class vmaffinityManageRules(vmmGObjectUI):
         
         # get description
         
-        self.selectedRuleDesTextview.get_buffer().set_text(selectedGroupDetails.getDescription())
+        desc = ""
+        if selectedGroupDetails.getDescription() != None:
+        	desc = selectedGroupDetails.getDescription()
+        	
+        self.selectedRuleDesTextview.get_buffer().set_text(desc)
         # get list of virtual machines in the group
         memberVMs = selectedGroupDetails.getVMList()
         
@@ -229,8 +233,13 @@ class vmaffinityManageRules(vmmGObjectUI):
         selectedGroupName = self.allGroupsClist.get_text(row,column)
         selectedGroupDetails = self.allGroupDictionary[selectedGroupName]
         
-        # Get Description        
-        self.selectedRuleDesTextview.get_buffer().set_text(selectedGroupDetails.getDescription())
+        # Get Description
+        desc = ""
+        
+        if selectedGroupDetails.getDescription() != None:
+        	desc = selectedGroupDetails.getDescription()
+        	       
+        self.selectedRuleDesTextview.get_buffer().set_text(desc)
         
         # get list of virtual machines in the group
         memberVMs = selectedGroupDetails.getVMList()
