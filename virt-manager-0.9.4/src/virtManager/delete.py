@@ -31,6 +31,8 @@ from virtManager import util
 from virtManager.baseclass import vmmGObjectUI
 from virtManager.asyncjob import vmmAsyncJob
 
+from virtManager import vmaffinityxmlutil
+
 STORAGE_ROW_CONFIRM = 0
 STORAGE_ROW_CANT_DELETE = 1
 STORAGE_ROW_PATH = 2
@@ -145,6 +147,10 @@ class vmmDeleteDialog(vmmGObjectUI):
             self.err.show_err(error, details=details)
 
         conn.tick(noStatsUpdate=True)
+        
+        # Update Groups config file, send name of vm being deleted. If this vm is 
+        # member of some other group then delete that group.
+        vmaffinityxmlutil.update_GroupsconfigOnDelete(self.vm.get_name())
 
         self.close()
 

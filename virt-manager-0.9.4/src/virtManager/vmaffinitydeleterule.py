@@ -231,11 +231,12 @@ class vmaffinityDeleteRule(vmmGObjectUI):
         	
         self.selectedRuleDesTextview.get_buffer().set_text(desc)
         # get list of virtual machines in the group
-        memberVMs = selectedGroupDetails.getVMList()
+        #memberVMs = selectedGroupDetails.getVMList()
+        memberVMs = []
         
         try:
             # 1. Delete from group configuration file, 
-		    vmaffinityxmlutil.updateDeleteRuleGroupsXML(selectedGroupName)
+		    memberVMs = vmaffinityxmlutil.updateDeleteRuleGroupsXML(selectedGroupName)
 		    # 2. Take all vm names, use dictionary, go to respective files and delete group membership.
 		    vmaffinityxmlutil.updateDeleteRuleVM_XML(selectedGroupName, memberVMs)
         

@@ -235,7 +235,7 @@ def updateDeleteRuleVM_XML(groupName,L):
                                                                                 affinity.remove(group)
                                                                                 doc.write("/etc/libvirt/qemu/"+VM+".xml")
                                                 groups=affinity.findall("group")
-                                                if(len(groups)==1):
+                                                if(len(groups)==0):
                                                                 s.remove(affinity)
 
 ######################################
@@ -311,3 +311,20 @@ def isVMAffineToOtherVM(vmname):
 		return False
 	else:
 		return True
+		
+##########################################################################################
+####### Updating Groups Configuration whenever a vm is deleted or migrated from machine ##
+##########################################################################################
+
+def update_GroupsconfigOnDelete(VM):
+	doc = ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
+	s = doc.getroot()
+	for group in s.findall("group"):
+		for vm in group.findall("VM"):
+			if(vm.text == VM):
+				group.remove(vm)
+				doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
+		vms=group.findall("VM")
+		if(len(vms) <= 1):
+			s.remove(group)
+			doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
