@@ -204,7 +204,7 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         
         self.groupVMClist.freeze()
         
-        self.groupVMClist.remove(self.selectedAllVMRow)
+        self.groupVMClist.remove(self.selectedGroupVMRow)
         
         self.groupVMClist.thaw()
         
