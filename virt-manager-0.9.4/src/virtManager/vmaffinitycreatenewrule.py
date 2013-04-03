@@ -138,10 +138,19 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         
         self.allVMClist.clear()
         
+        # List all inactive domains:
+        
         connection = libvirt.open('qemu:///system')
         self.allVMList = connection.listDefinedDomains()
         for name in self.allVMList:
             self.allVMClist.append([name])
+        
+        #List all active domains:
+        tempList = connection.listDomainsID()
+        for id in tempList:
+            dom = connection.lookupByID(id)
+            self.allVMClist.append([dom.name()])
+        
         
         # just for testing
         #self.allVMClist.append(["vmaffinity1"])
