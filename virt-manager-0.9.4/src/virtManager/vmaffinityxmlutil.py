@@ -328,3 +328,21 @@ def update_GroupsconfigOnDelete(VM):
 		if(len(vms) <= 1):
 			s.remove(group)
 			doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
+			
+
+##########################################################################################
+####### Checks if there exists a group with member vms same as new group to be created ###
+##########################################################################################
+def check_if_Rule_Duplicate(memberVMs):
+
+	doc=ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
+	s=doc.getroot()
+	for group in doc.findall("group"):
+		VMs = []
+		for VM in group.findall("VM"):
+			VMs.append(VM.text)
+		common = set(memberVMs) & set(VMs)
+		if(len(common) == len(memberVMs)):
+			return group.attrib['name']
+			
+	return None	

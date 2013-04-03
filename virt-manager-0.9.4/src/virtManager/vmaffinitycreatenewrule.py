@@ -266,7 +266,7 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         if self.totalVMsInGroup <= 1:
             self.show_error_message("ERROR: Ideally 2 or more virtual machines should be in an Affinity Group.")
             return
-        
+            
         # Create rule
         self.hide_error_message()
         
@@ -289,7 +289,14 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
             vmsInGroup = []
             for i in range(self.totalVMsInGroup):
                 vmsInGroup.append(self.groupVMClist.get_text(i, 0))
-                
+            
+            # Check if there exists a group with same member vms
+            returned = vmaffinityxmlutil.check_if_Rule_Duplicate(vmsInGroup)
+            
+            if returned != None:
+            	self.err.show_info(_("Affinity Group : \' %s \' has same set of member virtual machines !!! Creating this rule is possibly un-necessary !!!") % str(returned), "", "Rule Creation Not Possible", False)
+            	return
+            
             # Update Groups config file.
             vmaffinityxmlutil.updateCreateRuleGroupsXML(str(self.newGroupName), vmsInGroup, str(self.newGroupDescription))    
 
