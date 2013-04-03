@@ -304,6 +304,9 @@ def isVMAffineToOtherVM(vmname):
 	doc=ET.parse("/etc/libvirt/qemu/"+vmname+".xml")
 	s=doc.getroot()
 	affinity=s.find("affinity")
+	if affinity == None:
+		return False
+		
 	if(len(affinity)==0):
 		return False
 	else:
