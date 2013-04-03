@@ -30,7 +30,7 @@ Anusha &lt;anush@iiitb.org&gt;
 Nagashree &lt;nagashree@iiitb.org&gt;
 Neha Gupta &lt;neha.gupta@iiitb.org&gt;</property>
     <signal name="delete-event" handler="on_vmaffinity-about_delete_event" swapped="no"/>
-    <signal name="response" handler="on_vmm_about_response" swapped="no"/>
+    <signal name="response" handler="on_vmaffinity-about_response" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="vmaffinity-about-dialogbox">
         <property name="can_focus">False</property>

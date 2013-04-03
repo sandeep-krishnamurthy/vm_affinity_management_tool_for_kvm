@@ -23,17 +23,24 @@ class vmaffinityAbout(vmmGObjectUI):
     def __init__(self):
         vmmGObjectUI.__init__(self, "vmaffinity-about.ui", "vmaffinity-about")
         self.window.connect_signals({
-            "on_vm_affinity_about_delete_event": self.close,
-            "on_vm_affinity_about_response": self.close,})
+            "on_vmaffinity-about_delete_event": self.close,
+            "on_vmaffinity-about_response": self.close,})
 
     def show(self):
         logging.debug("Showing vmaffinity about")
         self.topwin.present()
 
-    def close(self, data=None):
+    def close(self, data1=None, data2=None):
         logging.debug("Closing vmaffinity about")
         self.topwin.hide()
+        self.reset_state()
         return 1
+    
+    def reset_state(self):
+    	vmmGObjectUI.__init__(self, "vmaffinity-about.ui", "vmaffinity-about")
+        self.window.connect_signals({
+            "on_vmaffinity-about_delete_event": self.close,
+            "on_vmaffinity-about_response": self.close,})
 
     def _cleanup(self):
         pass
