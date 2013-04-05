@@ -148,8 +148,8 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         #List all active domains:
         tempList = connection.listDomainsID()
         for id in tempList:
-            dom = connection.lookupByID(id)
-            self.allVMClist.append([dom.name()])
+        	dom = connection.lookupByID(id)
+        	self.allVMClist.append([dom.name()])
         
         
         # just for testing
@@ -230,7 +230,7 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         
         # check if duplicate
         if self.sortedAllGroupsList.count(self.newGroupName) != 0:
-            self.show_error_message("ERROR: Affinity Group Name Already Exists. Please enter other name")
+            self.show_error_message("ERROR: Affinity Group Name Already Exists.")
             return
         
         # Clear Any Error Messages
@@ -253,7 +253,7 @@ class vmaffinityCreateNewRule(vmmGObjectUI):
         
         # check if duplicate
         if self.sortedAllGroupsList.count(str(self.newGroupName)) != 0:
-            self.show_error_message("ERROR: Affinity Group Name Already Exists. Please enter other name")
+            self.show_error_message("ERROR: Affinity Group Name Already Exists.")
             return
                 
         # get description
