@@ -464,16 +464,18 @@ class vmaffinityManageRules(vmmGObjectUI):
     
     
     def get_allVMsInMachine(self):
+         	
+        # List all inactive domains:
         connection = libvirt.open('qemu:///system')
         
         allVMsInMachine = []
         allVMsInMachine = connection.listDefinedDomains()
         
-        # Just for testing TODO: SHOULD BE REMOVED.
-        
-        #allVMsInMachine.append("vmaffinity3")
-        #allVMsInMachine.append("vmaffinity4")
-        #allVMsInMachine.append("vmaffinity5")
+        #List all active domains:
+        tempList = connection.listDomainsID()
+        for id1 in tempList:
+        	dom = connection.lookupByID(id1)
+        	allVMsInMachine.append(dom.name())        
         
         return allVMsInMachine
     
