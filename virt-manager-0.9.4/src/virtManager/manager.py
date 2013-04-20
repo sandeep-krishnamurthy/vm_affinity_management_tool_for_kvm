@@ -137,6 +137,9 @@ class vmmManager(vmmGObjectUI):
             "on_menu_vmaffinity_deleterule_activate": self.show_vmaffinity_deleteaffinityrule,
             "on_menu_vmaffinity_viewrules_activate": self.show_vmaffinity_viewrules,
             "on_menu_vmaffinity_managerules_activate": self.show_vmaffinity_managerules,
+            "on_menu_vmaffinity_createhostaffinityrule_activate": self.show_vmaffinity_createhostaffinityrule,
+            "on_menu_vmaffinity_deletehostaffinityrule_activate": self.show_vmaffinity_deletehostaffinityrule,
+            "on_menu_vmaffinity_viewhostaffinityrules_activate" : self.show_vmaffinity_viewhostaffinityrules,
             #end Sandeep
         })
 
@@ -535,6 +538,15 @@ class vmmManager(vmmGObjectUI):
     
     def show_vmaffinity_managerules(self, src_ignore=None):
         self.emit("action-show-manage-affinity-rules")
+    
+    def show_vmaffinity_createhostaffinityrule(self, src_ignore=None):
+        self.emit("action-show-create-host-affinity-rule")
+    
+    def show_vmaffinity_deletehostaffinityrule(self, src_ignore=None):
+        self.emit("action-show-delete-host-affinity-rule")
+    
+    def show_vmaffinity_viewhostaffinityrules(self, src_ignore=None):
+        self.emit("action-show-view-host-affinity-rules")
         
     #Stop Sandeep
 
@@ -1276,4 +1288,7 @@ vmmManager.signal_new(vmmManager, "action-show-create-new-affinity-rule", [])
 vmmManager.signal_new(vmmManager, "action-show-delete-affinity-rule", [])
 vmmManager.signal_new(vmmManager, "action-show-view-affinity-rules",[])
 vmmManager.signal_new(vmmManager, "action-show-manage-affinity-rules",[])
+vmmManager.signal_new(vmmManager, "action-show-create-host-affinity-rule", [])
+vmmManager.signal_new(vmmManager, "action-show-delete-host-affinity-rule", [])
+vmmManager.signal_new(vmmManager, "action-show-view-host-affinity-rules", [])
 #Stop Sandeep

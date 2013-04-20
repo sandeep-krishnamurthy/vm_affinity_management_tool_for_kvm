@@ -21,20 +21,10 @@ import os
 ######## Pre-Computation #########
 ##################################
 
-def checkIfGroupsConfigExists():
-	groupsXMLConfig = "/usr/local/share/virt-manager/AffinityGroups.xml"
-	
-	try:
-		fp = open(groupsXMLConfig, "r")
-		fp.close()
-	except Exception, e:
-		fp=open(groupsXMLConfig,'w+')
-		fp.write('<VMAffinityGroups></VMAffinityGroups>')
-		fp.close()
-
 def loadGroupsToList():
                 #TODO: Use configuration.filepath, don't use hard coded path
-                doc = ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
+                groupsXMLConfig = getGroupConfigFullPath()
+                doc = ET.parse(groupsXMLConfig)
                 s = doc.getroot()
                 l=[]
                 sortedlist = []
@@ -117,12 +107,12 @@ def mergesort(list):
 # Updating "Groups.xml" configuration file.
 def updateCreateRuleGroupsXML(groupName, VMlist, description):
                            #TODO: Use configuration.filepath, don't use hard coded path
-                                doc = ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
+                                groupsXMLConfig = getGroupConfigFullPath()
+                                doc = ET.parse(groupsXMLConfig)
                                 s = doc.getroot()
                                 myattributes={"name": groupName}                
                                 ET.SubElement(s,'group',attrib=myattributes)
-                                #TODO: Use configuration.filepath, don't use hard coded path
-                                doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
+                                doc.write(groupsXMLConfig)
                                 groups=doc.findall("group")
                                 descriptionTag=ET.SubElement(groups[len(groups)-1],"Description")
                                 descriptionTag.text=description
@@ -130,24 +120,24 @@ def updateCreateRuleGroupsXML(groupName, VMlist, description):
                                     VM=ET.SubElement(groups[len(groups)-1],"VM")
                                     VM.text=VMName
 		
-		                        #TODO: Use configuration.filepath, don't use hard coded path
-                                doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
-                                                                
+                                doc.write(groupsXMLConfig)                          
 # Update individual virtual machine xml files.
 def updateCreationRuleVM_XML(groupName,L):
+                                
                                 for VM in L:
-                                                doc = ET.parse("/etc/libvirt/qemu/"+VM+".xml")
+                                                
+                                                doc = ET.parse(getVMConfigFullPathFromName(VM))
                                                 s = doc.getroot()
                                                 affinityTag=doc.findall("affinity")
                                                 if len(affinityTag)==0:
                                                                 affinity=ET.SubElement(s,'affinity')
                                                                 group=ET.SubElement(affinity,'group')	
                                                                 group.text=groupName  
-                                                                doc.write("/etc/libvirt/qemu/"+VM+".xml")
+                                                                doc.write(getVMConfigFullPathFromName(VM))
                                                 else :                        
                                                                 group=ET.SubElement(affinityTag[0],'group')	
                                                                 group.text=groupName  
-                                                                doc.write("/etc/libvirt/qemu/"+VM+".xml") 
+                                                                doc.write(getVMConfigFullPathFromName(VM)) 
 
 
 ######################################
@@ -160,7 +150,8 @@ def updateCreationRuleVM_XML(groupName,L):
 # value = groupDetailsObject => GroupDetailsClass = description, list of vms
 
 def getAffinityGroupDetails():
-                                doc=ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
+                                groupsXMLConfig = getGroupConfigFullPath()
+                                doc=ET.parse(groupsXMLConfig)
                                 s=doc.getroot()   
                                 #L=[] 
                                 dictionary = {}
@@ -212,28 +203,27 @@ class GroupDetails:
 # Update "AffinityGroups.xml" configuration file.
 def updateDeleteRuleGroupsXML(groupName):
                                                  VMs=[]
-                                                 #TODO: Use configuration.filepath, don't use hard coded path
-                                                 doc=ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
+                                                 groupsXMLConfig = getGroupConfigFullPath()
+                                                 doc=ET.parse(groupsXMLConfig)
                                                  s=doc.getroot()
                                                  for group in doc.findall("group"):
                                                                    if group.attrib['name']==groupName:
                                                                                 for VM in group.findall("VM"):
                                                                                         VMs.append(VM.text)  
                                                                                 s.remove(group)
-                                                                                #TODO: Use configuration.filepath, don't use hard coded path
-                                                                                doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')  
+                                                                                doc.write(groupsXMLConfig)
                                                                                 return VMs
 
 # Update individula virtual machine xml configuration file
 def updateDeleteRuleVM_XML(groupName,L):     
                                 for VM in L:
-                                                doc=ET.parse("/etc/libvirt/qemu/"+VM+".xml")
+                                                doc=ET.parse(getVMConfigFullPathFromName(VM))
                                                 s=doc.getroot()
                                                 affinity=s.find("affinity")
                                                 for group in affinity.findall("group"):
                                                                 if(group.text==groupName):
                                                                                 affinity.remove(group)
-                                                                                doc.write("/etc/libvirt/qemu/"+VM+".xml")
+                                                                                doc.write(getVMConfigFullPathFromName(VM))
                                                 groups=affinity.findall("group")
                                                 if(len(groups)==0):
                                                                 s.remove(affinity)
@@ -243,7 +233,8 @@ def updateDeleteRuleVM_XML(groupName,L):
 ######################################
 
 def updateGroupConfig(VMNameList, GroupName):
-	tree = ET.parse('/usr/local/share/virt-manager/AffinityGroups.xml')
+	groupsXMLConfig = getGroupConfigFullPath()
+	tree = ET.parse(groupsXMLConfig)
 	root = tree.getroot()	
 	for entry in root.findall('group'):
 		name=entry.get('name')
@@ -256,7 +247,7 @@ def updateGroupConfig(VMNameList, GroupName):
 				VM=ET.SubElement(entry,'VM')
 				VM.text=vmss				
 			break
-	tree.write('/usr/local/share/virt-manager/AffinityGroups.xml')
+	tree.write(groupsXMLConfig)
 	return True
 
 def removeGroupFromVMConfig(vmpath, groupname):
@@ -289,11 +280,11 @@ def RefreshGroup(oldlist,newlist,groupname):
 	updateGroupConfig(newlist,groupname)
 	for vms in oldlist:
 		if(newlist.count(vms)==0):
-			removeGroupFromVMConfig("/etc/libvirt/qemu/"+vms+".xml",groupname)
+			removeGroupFromVMConfig(getVMConfigFullPathFromName(vms),groupname)
 		else:
 			newlist.remove(vms)
 	for vms in newlist:
-		addGroupToVMConfig("/etc/libvirt/qemu/"+vms+".xml",groupname)
+		addGroupToVMConfig(getVMConfigFullPathFromName(vms),groupname)
 	return True
 
 ############################
@@ -301,7 +292,7 @@ def RefreshGroup(oldlist,newlist,groupname):
 ############################
 
 def isVMAffineToOtherVM(vmname):
-	doc=ET.parse("/etc/libvirt/qemu/"+vmname+".xml")
+	doc=ET.parse(getVMConfigFullPathFromName(vmname))
 	s=doc.getroot()
 	affinity=s.find("affinity")
 	if affinity == None:
@@ -317,25 +308,26 @@ def isVMAffineToOtherVM(vmname):
 ##########################################################################################
 
 def update_GroupsconfigOnDelete(VM):
-	doc = ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
+	groupsXMLConfig = getGroupConfigFullPath()
+	doc = ET.parse(groupsXMLConfig)
 	s = doc.getroot()
 	for group in s.findall("group"):
 		for vm in group.findall("VM"):
 			if(vm.text == VM):
 				group.remove(vm)
-				doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
+				doc.write(groupsXMLConfig)
 		vms=group.findall("VM")
 		if(len(vms) <= 1):
 			s.remove(group)
-			doc.write('/usr/local/share/virt-manager/AffinityGroups.xml')
+			doc.write(groupsXMLConfig)
 			
 
 ##########################################################################################
 ####### Checks if there exists a group with member vms same as new group to be created ###
 ##########################################################################################
 def check_if_Rule_Duplicate(memberVMs):
-
-	doc=ET.parse("/usr/local/share/virt-manager/AffinityGroups.xml")
+	groupsXMLConfig = getGroupConfigFullPath()
+	doc = ET.parse(groupsXMLConfig)
 	s=doc.getroot()
 	for group in doc.findall("group"):
 		VMs = []
@@ -346,3 +338,217 @@ def check_if_Rule_Duplicate(memberVMs):
 			return group.attrib['name']
 			
 	return None	
+
+###############################################
+######### Create Host Affinity Rule ###########
+###############################################
+
+# Update VM-Host Affinity in Groups Config file.
+def updateGroupConfigForHostAffinity(vmname, Description, affinedhostlist):
+	
+	groupConfigFullPath = getGroupConfigFullPath()
+	doc=ET.parse(groupConfigFullPath)
+	s=doc.getroot()
+	if(len(s.findall("hostaffinity"))>0):
+		for hostAffinity in s.findall("hostaffinity"):
+			if(hostAffinity.attrib['name']==vmname):
+				hostList=[]			
+				for hosts in hostAffinity.findall("host"):
+					hostList.append(hosts.text)
+				newList=list(set(affinedhostlist)-set(hostList))
+				print newList
+				
+				for newhost in newList:
+					host=ET.SubElement(hostAffinity,"host")
+                    			host.text=newhost
+                    			doc.write(groupConfigFullPath)
+				return
+	
+	myattributes={"name": vmname}                
+	hostaffinity=ET.SubElement(s,'hostaffinity',attrib=myattributes)
+	description=ET.SubElement(hostaffinity,"description")
+	description.text=Description
+	doc.write(groupConfigFullPath)		
+	for newhost in affinedhostlist:
+		host=ET.SubElement(hostaffinity,"host")
+                host.text=newhost
+                doc.write(groupConfigFullPath)
+
+# Update VM-Host affinity rule in individual VM name.
+def updateVMConfigForHostAffinity(vmname, Description, affinedhostlist):
+	doc=ET.parse(getVMConfigFullPathFromName(vmname))
+	s=doc.getroot()
+	hostAffinity=s.find("hostaffinity")
+	if(hostAffinity != None and len(hostAffinity)>0):
+		existing_hosts=[]
+		for hosts in hostAffinity.findall("host"):
+			existing_hosts.append(hosts.text)
+		total_hosts=list(set(affinedhostlist)-set(existing_hosts))       		
+		for newhost in total_hosts:
+			host=ET.SubElement(hostAffinity,"host")
+                	host.text=newhost
+                	doc.write(getVMConfigFullPathFromName(vmname))
+		return
+	hostaffinity=ET.SubElement(s,'hostaffinity')
+	description=ET.SubElement(hostaffinity,"description")
+	description.text=Description
+	doc.write(getVMConfigFullPathFromName(vmname))		
+	for newhost in affinedhostlist:
+		host=ET.SubElement(hostaffinity,"host")
+                host.text=newhost
+        	doc.write(getVMConfigFullPathFromName(vmname))
+
+###############################################
+######### Delete Host Affinity Rule ###########
+###############################################
+
+def removeHostAffinityFromVMConfig(vmname):
+	doc=ET.parse(getVMConfigFullPathFromName(vmname))
+	s=doc.getroot()
+	hostAffinity=s.find("hostaffinity")
+	if(len(hostAffinity)>0):
+		s.remove(hostAffinity)
+		doc.write(getVMConfigFullPathFromName(vmname))
+
+def removeHostAffinityFromGroupConfig(vmname):
+	groupConfigFullPath = getGroupConfigFullPath()
+	doc=ET.parse(groupConfigFullPath)
+	s=doc.getroot()
+	for hostAffinity in s.findall("hostaffinity"):
+		if(hostAffinity.attrib['name']==vmname):
+			s.remove(hostAffinity)
+			doc.write(groupConfigFullPath)
+
+#################################################################
+######### Get Host Affinity Rule Details as Dictionary###########
+#################################################################
+
+# Return dictionary of host affinity details of given list of vms.
+def getHostAffinityDetailsDictionary(VMList):
+
+	mydictionary = {}
+		
+	for vm in VMList:
+
+		l = []	
+		data = ""	
+		doc=ET.parse(getVMConfigFullPathFromName(vm))
+		s=doc.getroot()
+		hostAffinityTag=s.find("hostaffinity")
+		HostAffinityDetailsObject=HostAffinityDetails()
+		if hostAffinityTag != None and len(hostAffinityTag) > 0:
+			description=hostAffinityTag.find("description")
+   			hosts=hostAffinityTag.findall("host")
+   			for host in hosts:
+   				l.append(host.text)
+   		
+   			if description == None:
+   				data = ""
+   			else:
+   				data = description.text
+     		
+   			HostAffinityDetailsObject.hostAffinityDetails(data, l)
+   			
+   			tempDictionary = {vm:HostAffinityDetailsObject}
+   			mydictionary.update(tempDictionary)
+   			
+   			#print data, "and", vm	
+   			
+  		else:       		
+			data = ""
+			HostAffinityDetailsObject.hostAffinityDetails(data, l)
+   			tempDictionary = {vm:HostAffinityDetailsObject}
+   			mydictionary.update(tempDictionary)
+       
+       	#mydictionary.update({vm:HostAffinityDetailsObject})
+       	
+	return mydictionary
+
+# return affined host list for a given virtual machine, "vmname"
+def getHostAffinityDetails(vmname):
+	hostList=[]
+	doc=ET.parse(getVMConfigFullPathFromName(vmname))
+   	s=doc.getroot()
+	hostAffinityTag=s.find("hostaffinity")
+	if hostAffinityTag != None and len(hostAffinityTag) > 0:
+		hosts=hostAffinityTag.findall("host")
+		for host in hosts:
+			hostList.append(host.text)
+		
+	return hostList
+
+# Container class for Host affinity details	
+class HostAffinityDetails:
+        
+        def __init__(self):
+            self.description = ""
+            self.hostList = []
+                
+        def hostAffinityDetails(self, description, L):
+            self.description = description
+            self.hostList = L
+               
+            return self
+        
+        def getDescription(self):
+            return self.description
+        
+        def getHostList(self):
+            return self.hostList
+
+#############################################################################
+########## Controlling Migration Based on VM-host Affinity Rules ############
+#############################################################################
+def isVMAffineToHost(vmname, destHost):
+	hostList = []
+	hostList = getHostAffinityDetails(vmname)
+	
+	# No affinity to any hosts
+	if (len(hostList) == 0):
+		return False
+	
+	# If it is affined to any hosts, then destHost is one among them, allow migration
+	for host in hostList:
+		if host == destHost:
+			return False
+	
+	return True
+
+################################################################
+#######################Helper Methods###########################
+################################################################
+def checkIfGroupsConfigExists():
+	groupsXMLConfig = getGroupConfigFullPath()
+	
+	try:
+		fp = open(groupsXMLConfig, "r")
+		fp.close()
+	except Exception, e:
+		fp=open(groupsXMLConfig,'w+')
+		fp.write('<VMAffinityGroups></VMAffinityGroups>')
+		fp.close()
+
+
+def checkIfVMConfigExists(vmname):
+	fullPath = getLocalConfigFolderPath() + vmname + ".xml"
+	
+	try:
+		fp = open(fullPath, "r")
+		fp.close()
+	except Exception, e:
+		fp = open(fullPath, "w+")
+		fp.write("<vmaffinity><affinity></affinity></vmaffinity>")
+		fp.close()
+
+
+def getGroupConfigFullPath():
+	return getLocalConfigFolderPath() + "AffinityGroups.xml"
+
+
+def getVMConfigFullPathFromName(vmname):
+	checkIfVMConfigExists(vmname)
+	return getLocalConfigFolderPath() + vmname + ".xml"
+
+
+def getLocalConfigFolderPath():
+	return "/home/sandeep/vmaffinity_configuration/"

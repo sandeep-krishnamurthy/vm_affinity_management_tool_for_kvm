@@ -431,8 +431,17 @@ class vmmMigrateDialog(vmmGObjectUI):
         #Start sandeep
         vmName = self.vm.get_name()
         
+        destconn = self.get_config_destconn()
+        destHostName = destconn.get_qualified_hostname()
+        
+        if vmaffinityxmlutil.isVMAffineToHost(vmName, destHostName) == True:
+        	return self.err.val_err(_("Cannot Migrate %s because it is affine with this host.") % vmName)
+        
         if vmaffinityxmlutil.isVMAffineToOtherVM(vmName) == True:
-        	return self.err.val_err(_("Cannot Migrate this VM because it is affine with other virtual Machines."))
+        	return self.err.val_err(_("Cannot Migrate %s because it is affine with other virtual Machines.") % vmName)
+		
+		#TODO: Sandeep : get migrating dest host name, read affinity host details of this vm, 
+		# if list is empty, allow migration, if list is not empty then check if destination host name is present in list of affined hosts.
 		
 		# Stop Sandeep
 		

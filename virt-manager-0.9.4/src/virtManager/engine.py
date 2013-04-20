@@ -53,6 +53,9 @@ from virtManager.vmaffinitycreatenewrule import vmaffinityCreateNewRule
 from virtManager.vmaffinitydeleterule import vmaffinityDeleteRule
 from virtManager.vmaffinitymanagerules import vmaffinityManageRules
 from virtManager.vmaffinityviewrules import vmaffinityViewRules
+from virtManager.vmaffinitycreatehostaffinityrule import vmaffinityCreateHostAffinityRule
+from virtManager.vmaffinitydeletehostaffinityrule import vmaffinityDeleteHostAffinityRule
+from virtManager.vmaffinityviewhostaffinityrules import vmaffinityViewHostAffinityRules
 #Stop Sandeep
 
 # Enable this to get a report of leaked objects on app shutdown
@@ -98,6 +101,9 @@ class vmmEngine(vmmGObject):
         self.windowVMAffinityDeleteAffinityRule = None
         self.windowVMAffinityViewRules = None
         self.windowVMAffinityManageRules = None
+        self.windowVMAffinityCreateHostAffinityRule = None
+        self.windowVMAffinityDeleteHostAffinityRule = None
+        self.windowVMAffinityViewHostAffinityRules = None
         #Stop Sandeep
 
         self.conns = {}
@@ -410,7 +416,18 @@ class vmmEngine(vmmGObject):
         if self.windowVMAffinityManageRules:
             self.windowVMAffinityManageRules.cleanup()
             self.windowVMAffinityManageRules = None
-            
+        
+        if self.windowVMAffinityCreateHostAffinityRule:
+        	self.windowVMAffinityCreateHostAffinityRule.cleanup()
+        	self.windowVMAffinityCreateHostAffinityRule = None
+        
+        if self.windowVMAffinityDeleteHostAffinityRule:
+        	self.windowVMAffinityDeleteHostAffinityRule.cleanup()
+        	self.windowVMAffinityDeleteHostAffinityRule = None
+        
+        if self.windowVMAffinityViewHostAffinityRules:
+        	self.windowVMAffinityViewHostAffinityRules.cleanup()
+        	self.windowVMAffinityViewHostAffinityRules = None
         #Stop Sandeep
 
         # Do this last, so any manually 'disconnected' signals
@@ -561,6 +578,24 @@ class vmmEngine(vmmGObject):
         except Exception, e:
             src.err.show_err(_("Error launching 'VM Affinity Manage Affinity Rules' dialog: %s")%str(e))
     
+    def _do_show_create_host_affinity_rule(self, src):
+    	try:
+    		self._get_createhostaffinityrule_dialog(src).show(src.topwin)
+    	except Exception, e:
+    		src.err.show_err(_("Error launching 'VM Affinity Create New Host Affinity Rule' dialog: %s") % str(e))
+    
+    def _do_show_delete_host_affinity_rule(self, src):
+    	try:
+    		self._get_deletehostaffinityrule_dialog(src).show(src.topwin)
+    	except Exception, e:
+    		src.err.show_err(_("Error launching 'VM Affinity Delete Host Affinity Rule' dialog: %s") % str(e))
+    
+    def _do_show_view_host_affinity_rules(self, src):
+    	try:
+    		self._get_viewhostaffinityrules_dialog(src).show(src.topwin)
+    	except Exception, e:
+    		src.err.show_err(_("Error launching 'VM Affinity View Host Affinity Rule' dialog: %s") % str(e))
+    
     #Stop Sandeep
 
     def _do_show_about(self, src):
@@ -665,6 +700,30 @@ class vmmEngine(vmmGObject):
         self.windowVMAffinityManageRules = vmaffinityManageRules()
         return self.windowVMAffinityManageRules
     
+    def _get_createhostaffinityrule_dialog(self, src):
+    	
+    	if self.windowVMAffinityCreateHostAffinityRule:
+    		self.windowVMAffinityCreateHostAffinityRule = None
+    	
+    	self.windowVMAffinityCreateHostAffinityRule = vmaffinityCreateHostAffinityRule()
+    	return self.windowVMAffinityCreateHostAffinityRule
+    
+    def _get_deletehostaffinityrule_dialog(self, src):
+    	
+    	if self.windowVMAffinityDeleteHostAffinityRule:
+    		self.windowVMAffinityDeleteHostAffinityRule = None
+    	
+    	self.windowVMAffinityDeleteHostAffinityRule = vmaffinityDeleteHostAffinityRule()
+    	return self.windowVMAffinityDeleteHostAffinityRule
+    
+    def _get_viewhostaffinityrules_dialog(self, src):
+    	
+    	if self.windowVMAffinityViewHostAffinityRules:
+    		self.windowVMAffinityViewHostAffinityRules = None
+    	
+    	self.windowVMAffinityViewHostAffinityRules = vmaffinityViewHostAffinityRules()
+    	return self.windowVMAffinityViewHostAffinityRules
+    	
     #stop sandeep
 
     def _do_show_connect(self, src):
@@ -754,6 +813,9 @@ class vmmEngine(vmmGObject):
         obj.connect("action-show-delete-affinity-rule", self._do_show_delete_affinity_rule)
         obj.connect("action-show-view-affinity-rules", self._do_show_view_affinity_rules)
         obj.connect("action-show-manage-affinity-rules",self._do_show_manage_affinity_rules)
+        obj.connect("action-show-create-host-affinity-rule", self._do_show_create_host_affinity_rule)
+        obj.connect("action-show-delete-host-affinity-rule", self._do_show_delete_host_affinity_rule)
+        obj.connect("action-show-view-host-affinity-rules", self._do_show_view_host_affinity_rules)
         #stop sandeep
 
         self.connect("conn-added", obj.add_conn)
@@ -865,7 +927,16 @@ class vmmEngine(vmmGObject):
     
     def show_manageaffinityrules(self):
         self._do_show_manage_affinity_rules(self.get_manager())
-        
+    
+    def show_createhostaffinityrule(self):
+    	self._do_show_create_host_affinity_rule(self.get_manager())
+    
+    def show_deletehostaffinityrule(self):
+    	self._do_show_delete_host_affinity_rule(self.get_manager())
+    
+    def show_viewhostaffinityrules(self):
+    	self._do_show_view_host_affinity_rules(self.get_manager())
+    	
     #stop sandeep
     
     #######################################
